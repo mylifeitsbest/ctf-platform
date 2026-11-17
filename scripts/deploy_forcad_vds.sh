@@ -106,9 +106,11 @@ cat <<EOF
 
   DestructiveFarm (ферма сдачи флагов) — ставим отдельно:
     git clone https://github.com/DestructiveVoice/DestructiveFarm && cd DestructiveFarm/server
-    В server/config.py:  SYSTEM='forcad', FLAG_FORMAT=r'[A-Z0-9]{31}=',
+    В server/config.py:  FLAG_FORMAT=r'[A-Z0-9]{31}=',
       TEAMS={'team2':'10.10.1.2','team3':'10.10.1.3'},  # бей по ботам, не по себе
-      SYSTEM_URL='http://${PUB}:8080', SYSTEM_TOKEN=<твой токен из print_tokens выше>
+      SYSTEM_PROTOCOL='ructf_http',              # НЕ forcad_tcp: в ForcAD теперь только HTTP-приёмник
+      SYSTEM_URL='http://${PUB}:8080/flags/',    # PUT, заголовок X-Team-Token, JSON-список флагов
+      SYSTEM_TOKEN=<твой токен из print_tokens выше>
     ./start_server.sh  -> веб фермы на :5000, клиенты шлют флаги из sploits/.
     Эталонные сплойты: $REPO/exploits_reference/*.py
 ================================================================

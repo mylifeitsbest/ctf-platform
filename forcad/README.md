@@ -38,8 +38,12 @@
    меняет только `$PATH`), поэтому per-task порт задавать НЕ нужно — просто один
    вулнбокс = один IP = одна команда.
 4. `./control.py setup && ./control.py start --fast` → scoreboard на `:8080`.
-5. **DestructiveFarm**: клиент-сервер, протокол сдачи — **ForcAD** (из коробки),
-   `server/config.py`: TEAMS = IP вулнбоксов, FLAG_FORMAT = `[A-Z0-9]{31}=`.
+5. **DestructiveFarm**: клиент-сервер. `server/config.py`: TEAMS = IP вулнбоксов,
+   FLAG_FORMAT = `[A-Z0-9]{31}=`, **`SYSTEM_PROTOCOL = 'ructf_http'`**,
+   `SYSTEM_URL = 'http://<IP ForcAD>:8080/flags/'`, `SYSTEM_TOKEN = <токен команды>`.
+   Протокол `forcad_tcp` из коробки НЕ подойдёт: он для старого TCP-приёмника (порт 31337),
+   а в актуальном ForcAD флаги принимает только HTTP (`PUT /flags/`, заголовок
+   `X-Team-Token`, тело — JSON-список до 100 флагов). Это ровно формат RuCTF HTTP.
    Сюда кладём эталонные сплойты — ферма и учит, и играет за «соперников».
 6. (День 2) добавить реальные сервисы из прошлых игр: `explorers` (XXE→JWT),
    `msp` (бэкдор) — у них уже есть checklib-чекеры и сплойты.

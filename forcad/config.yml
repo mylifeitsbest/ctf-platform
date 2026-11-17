@@ -1,0 +1,59 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Конфиг ForcAD для нашего учебного A/D (черновик, финализируется на ВДС).
+# ForcAD: https://github.com/pomo-mondreganto/ForcAD  (./control.py setup && start)
+#
+# ВАЖНО: checker_type ОБЯЗАТЕЛЬНО pfr.
+#   Наши чекеры возвращают public=attack_data (id ресурса для атакующего)
+#   и private=flag_id (токен:id), который ForcAD передаёт в get.
+#   При дефолтном hackerdom в get пришёл бы public → get сломался бы.
+# ─────────────────────────────────────────────────────────────────────────────
+
+game:
+  mode: classic
+  round_time: 30          # секунд на раунд (для тренировки быстро)
+  start_time: '2026-11-19 10:00:00'   # ← ПОСТАВИТЬ реальное время старта (сейчас заглушка под среду)
+  timezone: Europe/Moscow
+  default_score: 2500
+  flag_lifetime: 5        # флаг «живёт» 5 раундов
+  game_hardness: 10.0
+  inflation: true
+
+# Чекеры лежат в этом же репозитории: forcad/checkers/<name>/checker.py
+# (при деплое копируются в каталог чекеров ForcAD — путь уточняется на ВДС).
+tasks:
+  - name: notes
+    checker: notes/checker.py
+    checker_type: pfr
+    checker_timeout: 15
+    gets: 1
+    puts: 1
+    places: 1
+  - name: pingtool
+    checker: pingtool/checker.py
+    checker_type: pfr
+    checker_timeout: 15
+    gets: 1
+    puts: 1
+    places: 1
+  - name: vault
+    checker: vault/checker.py
+    checker_type: pfr
+    checker_timeout: 15
+    gets: 1
+    puts: 1
+    places: 1
+
+# Каждая «команда» — это ОТДЕЛЬНЫЙ вулнбокс (forcad/vulnbox: notes:5001,
+# pingtool:5002, vault:5003) со своим IP/хостом. Чекеры ходят на этот ip и
+# на зашитые порты 5001/5002/5003 — порт в config задавать НЕ нужно (ForcAD его
+# в чекер не прокидывает). Поэтому на одном IP = один вулнбокс = одна команда.
+# team1 = ты (патчишь свой бокс), team2/team3 = боты-соперники (по ним бьёт ферма).
+# ← ЗАМЕНИТЬ 10.10.1.x на реальные IP вулнбоксов на ВДС.
+teams:
+  - name: 'team1 (ты)'
+    ip: 10.10.1.1
+    highlighted: true
+  - name: 'team2 (бот)'
+    ip: 10.10.1.2
+  - name: 'team3 (бот)'
+    ip: 10.10.1.3

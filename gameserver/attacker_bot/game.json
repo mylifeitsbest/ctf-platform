@@ -1,0 +1,132 @@
+{
+  "comment": "Единый конфиг A/D-дойо. Меняйте teams/services тут, потом scripts/up.ps1 пересоберёт compose.",
+  "round_time": 30,
+  "flag_regex": "[A-Z0-9]{31}=",
+  "flag_ttl_rounds": 5,
+  "scoreboard_port": 8080,
+  "portal_port": 9000,
+  "attacker_bot": true,
+  "services": [
+    {
+      "name": "notes",
+      "internal_port": 5000,
+      "checker": "notes_checker.py",
+      "vuln": "IDOR + pickle-RCE",
+      "challenge": {
+        "title": "notes — IDOR",
+        "cls": "IDOR",
+        "points": 100,
+        "desc": "Сервис отдаёт заметку по номеру и не проверяет владельца. Перебери <code>GET /note/&lt;id&gt;</code> и достань чужой флаг."
+      }
+    },
+    {
+      "name": "pingtool",
+      "internal_port": 5000,
+      "checker": "pingtool_checker.py",
+      "vuln": "command injection",
+      "challenge": {
+        "title": "pingtool — инъекция команд",
+        "cls": "command injection",
+        "points": 150,
+        "desc": "Диагностика пингует хост через оболочку. Допиши свою команду (напр. <code>; cat /data/*/*</code>) и прочитай файлы с флагами."
+      }
+    },
+    {
+      "name": "vault",
+      "internal_port": 5000,
+      "checker": "vault_checker.py",
+      "vuln": "weak crypto (ECB/fixed key)",
+      "challenge": {
+        "title": "vault — слабая криптография",
+        "cls": "weak crypto",
+        "points": 150,
+        "desc": "<code>GET /blob/&lt;id&gt;</code> отдаёт шифротекст без пароля, а ключ <code>dojo-fixed-key!!</code> зашит в исходники. Забери и расшифруй (AES-ECB)."
+      }
+    },
+    {
+      "name": "blog",
+      "internal_port": 5000,
+      "checker": "blog_checker.py",
+      "vuln": "SQL injection",
+      "challenge": {
+        "title": "blog — SQL-инъекция",
+        "cls": "SQL injection",
+        "points": 150,
+        "desc": "Блог с приватными и публичными постами. Флаги лежат в приватных постах (<code>private=1</code>). Все ручки под авторизацией, кроме <code>GET /search?q=</code> — публичного поиска по заголовкам. Поиск собирает SQL конкатенацией строк, поэтому <code>q</code> инъектируется: закрой строковый литерал кавычкой, добавь свои колонки через UNION и срежь хвост комментарием. Пейлоад <code>/search?q=' UNION SELECT id,title,body FROM posts-- </code> вернёт тела всех постов, включая чужие приватные с флагами.",
+        "hints": [
+          "Какая ручка отвечает без токена? Все, кроме <code>GET /search</code>, требуют авторизацию — значит копай туда.",
+          "SQL-инъекция: <code>q</code> склеивается в <code>... title LIKE '%' + q + '%'</code>. Пейлоад <code>' UNION SELECT id,title,body FROM posts-- </code> вытащит и приватные посты с флагами чекера.",
+          "Патч: параметризованный запрос — <code>execute('... AND title LIKE ?', ('%' + q + '%',))</code>, не склеивай ввод в строку SQL. SLA не ходит в <code>/search</code>, остаётся зелёным."
+        ]
+      }
+    },
+    {
+      "name": "gallery",
+      "internal_port": 5000,
+      "checker": "gallery_checker.py",
+      "vuln": "path traversal",
+      "challenge": {
+        "title": "gallery — чтение чужих файлов",
+        "cls": "path traversal",
+        "points": 150,
+        "desc": "Публичная лента <code>GET /recent</code> раскрывает пути хранения вида <code>&lt;token16&gt;/&lt;name&gt;</code>, а <code>GET /download?path=...</code> отдаёт файл без авторизации и без проверки владельца. Подставь чужой путь из ленты (или выход вверх, напр. <code>/download?path=../&lt;чужой&gt;/&lt;name&gt;</code>) и прочитай чужие файлы с флагами.",
+        "hints": [
+          "Начни с публичной ленты последних загрузок — какие пути она показывает?",
+          "<code>/download?path=</code> не ограничивает путь твоим каталогом и не требует токена: скорми ему путь из <code>/recent</code> или <code>../&lt;чужой_token16&gt;/&lt;name&gt;</code>.",
+          "Патч: в <code>/download</code> требуй авторизацию и ограничь путь каталогом владельца (basename) либо убери его — безопасный <code>/get/&lt;name&gt;</code> держит SLA зелёным."
+        ]
+      }
+    },
+    {
+      "name": "profile",
+      "internal_port": 5000,
+      "checker": "profile_checker.py",
+      "vuln": "SSTI",
+      "challenge": {
+        "title": "profile — SSTI",
+        "cls": "template injection",
+        "points": 200,
+        "desc": "<p>Сервис-рендерер карточек профиля. Игрок задаёт себе <code>bio</code> через <code>POST /bio</code>, а <code>GET /card</code> возвращает отрендеренную карточку. Беда в том, что bio прогоняется через Jinja2 (<code>render_template_string</code>), да ещё и с контекстом, куда сложены секреты всех команд. Поставьте себе bio с шаблонным выражением <code>{{ secrets.values()|list }}</code> и запросите свою же карточку — в ответе окажутся чужие флаги. Классический SSTI: пользовательский ввод исполняется как шаблон.</p>",
+        "hints": [
+          "Смотри, что делает <code>GET /card</code> с текстом твоего же <code>/bio</code> перед ответом.",
+          "bio рендерится как Jinja2-шаблон, а в контекст передан словарь со всеми секретами. Пейлоад: {{ secrets.values()|list }}",
+          "Патч: отдавай bio как обычный текст, а не как шаблон (не вызывай render_template_string), или убери secrets из контекста. SLA (карточка показывает bio) остаётся зелёной."
+        ]
+      }
+    },
+    {
+      "name": "authn",
+      "internal_port": 5000,
+      "checker": "authn_checker.py",
+      "vuln": "JWT forgery",
+      "challenge": {
+        "title": "authn — подделка JWT",
+        "cls": "JWT forgery",
+        "points": 200,
+        "desc": "Сервис аутентификации с «тайником»: токен авторизации — это JWT. Секрет подписи слабый и захардкожен (<code>SECRET = \"secret\"</code>), а декодирование принимает <code>alg:none</code> и фактически не проверяет подпись — поэтому admin-токен тривиально подделывается. Подпишите <code>{\"user\":\"x\",\"admin\":true}</code> секретом <code>\"secret\"</code> (HS256) или соберите токен <code>alg:none</code>, затем вызовите <code>GET /admin/dump</code> — и получите секреты (флаги) всех пользователей из общего stash.",
+        "hints": [
+          "Посмотри, как проверяется токен в helper current() — какой секрет и какие алгоритмы допускает jwt.decode.",
+          "Подпись не проверяется: подделай admin-JWT (подпись слабым secret ИЛИ alg:none) и дёрни <code>GET /admin/dump</code>.",
+          "Патч: сильный случайный секрет при старте (secrets.token_hex), декодируй строго algorithms=[HS256], без alg:none и без verify_signature=False."
+        ]
+      }
+    }
+  ],
+  "teams": [
+    {
+      "name": "team1",
+      "host_port_base": 5100,
+      "owner": "practice-you"
+    },
+    {
+      "name": "team2",
+      "host_port_base": 5200,
+      "owner": "bot"
+    },
+    {
+      "name": "team3",
+      "host_port_base": 5300,
+      "owner": "bot"
+    }
+  ]
+}

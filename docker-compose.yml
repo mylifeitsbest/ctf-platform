@@ -1,0 +1,281 @@
+# АВТОГЕНЕРАЦИЯ из config/game.json — правьте конфиг, а не этот файл.
+# Пересоздать: python scripts/gen_compose.py
+services:
+  notes_team1:
+    build: ./services/notes
+    container_name: notes_team1
+    hostname: notes_team1
+    environment:
+      - SERVICE=notes
+      - TEAM=team1
+    ports:
+      - "5100:5000"
+    networks: [adnet]
+    restart: unless-stopped
+  pingtool_team1:
+    build: ./services/pingtool
+    container_name: pingtool_team1
+    hostname: pingtool_team1
+    environment:
+      - SERVICE=pingtool
+      - TEAM=team1
+    ports:
+      - "5101:5000"
+    networks: [adnet]
+    restart: unless-stopped
+  vault_team1:
+    build: ./services/vault
+    container_name: vault_team1
+    hostname: vault_team1
+    environment:
+      - SERVICE=vault
+      - TEAM=team1
+    ports:
+      - "5102:5000"
+    networks: [adnet]
+    restart: unless-stopped
+  blog_team1:
+    build: ./services/blog
+    container_name: blog_team1
+    hostname: blog_team1
+    environment:
+      - SERVICE=blog
+      - TEAM=team1
+    ports:
+      - "5103:5000"
+    networks: [adnet]
+    restart: unless-stopped
+  gallery_team1:
+    build: ./services/gallery
+    container_name: gallery_team1
+    hostname: gallery_team1
+    environment:
+      - SERVICE=gallery
+      - TEAM=team1
+    ports:
+      - "5104:5000"
+    networks: [adnet]
+    restart: unless-stopped
+  profile_team1:
+    build: ./services/profile
+    container_name: profile_team1
+    hostname: profile_team1
+    environment:
+      - SERVICE=profile
+      - TEAM=team1
+    ports:
+      - "5105:5000"
+    networks: [adnet]
+    restart: unless-stopped
+  authn_team1:
+    build: ./services/authn
+    container_name: authn_team1
+    hostname: authn_team1
+    environment:
+      - SERVICE=authn
+      - TEAM=team1
+    ports:
+      - "5106:5000"
+    networks: [adnet]
+    restart: unless-stopped
+  notes_team2:
+    build: ./services/notes
+    container_name: notes_team2
+    hostname: notes_team2
+    environment:
+      - SERVICE=notes
+      - TEAM=team2
+    ports:
+      - "5200:5000"
+    networks: [adnet]
+    restart: unless-stopped
+  pingtool_team2:
+    build: ./services/pingtool
+    container_name: pingtool_team2
+    hostname: pingtool_team2
+    environment:
+      - SERVICE=pingtool
+      - TEAM=team2
+    ports:
+      - "5201:5000"
+    networks: [adnet]
+    restart: unless-stopped
+  vault_team2:
+    build: ./services/vault
+    container_name: vault_team2
+    hostname: vault_team2
+    environment:
+      - SERVICE=vault
+      - TEAM=team2
+    ports:
+      - "5202:5000"
+    networks: [adnet]
+    restart: unless-stopped
+  blog_team2:
+    build: ./services/blog
+    container_name: blog_team2
+    hostname: blog_team2
+    environment:
+      - SERVICE=blog
+      - TEAM=team2
+    ports:
+      - "5203:5000"
+    networks: [adnet]
+    restart: unless-stopped
+  gallery_team2:
+    build: ./services/gallery
+    container_name: gallery_team2
+    hostname: gallery_team2
+    environment:
+      - SERVICE=gallery
+      - TEAM=team2
+    ports:
+      - "5204:5000"
+    networks: [adnet]
+    restart: unless-stopped
+  profile_team2:
+    build: ./services/profile
+    container_name: profile_team2
+    hostname: profile_team2
+    environment:
+      - SERVICE=profile
+      - TEAM=team2
+    ports:
+      - "5205:5000"
+    networks: [adnet]
+    restart: unless-stopped
+  authn_team2:
+    build: ./services/authn
+    container_name: authn_team2
+    hostname: authn_team2
+    environment:
+      - SERVICE=authn
+      - TEAM=team2
+    ports:
+      - "5206:5000"
+    networks: [adnet]
+    restart: unless-stopped
+  notes_team3:
+    build: ./services/notes
+    container_name: notes_team3
+    hostname: notes_team3
+    environment:
+      - SERVICE=notes
+      - TEAM=team3
+    ports:
+      - "5300:5000"
+    networks: [adnet]
+    restart: unless-stopped
+  pingtool_team3:
+    build: ./services/pingtool
+    container_name: pingtool_team3
+    hostname: pingtool_team3
+    environment:
+      - SERVICE=pingtool
+      - TEAM=team3
+    ports:
+      - "5301:5000"
+    networks: [adnet]
+    restart: unless-stopped
+  vault_team3:
+    build: ./services/vault
+    container_name: vault_team3
+    hostname: vault_team3
+    environment:
+      - SERVICE=vault
+      - TEAM=team3
+    ports:
+      - "5302:5000"
+    networks: [adnet]
+    restart: unless-stopped
+  blog_team3:
+    build: ./services/blog
+    container_name: blog_team3
+    hostname: blog_team3
+    environment:
+      - SERVICE=blog
+      - TEAM=team3
+    ports:
+      - "5303:5000"
+    networks: [adnet]
+    restart: unless-stopped
+  gallery_team3:
+    build: ./services/gallery
+    container_name: gallery_team3
+    hostname: gallery_team3
+    environment:
+      - SERVICE=gallery
+      - TEAM=team3
+    ports:
+      - "5304:5000"
+    networks: [adnet]
+    restart: unless-stopped
+  profile_team3:
+    build: ./services/profile
+    container_name: profile_team3
+    hostname: profile_team3
+    environment:
+      - SERVICE=profile
+      - TEAM=team3
+    ports:
+      - "5305:5000"
+    networks: [adnet]
+    restart: unless-stopped
+  authn_team3:
+    build: ./services/authn
+    container_name: authn_team3
+    hostname: authn_team3
+    environment:
+      - SERVICE=authn
+      - TEAM=team3
+    ports:
+      - "5306:5000"
+    networks: [adnet]
+    restart: unless-stopped
+  scoreboard:
+    build: ./gameserver/scoreboard
+    container_name: scoreboard
+    hostname: scoreboard
+    environment:
+      - FLAG_REGEX=[A-Z0-9]{31}=
+      - FLAG_TTL_ROUNDS=5
+    ports:
+      - "8080:8080"
+    networks: [adnet]
+    restart: unless-stopped
+  checker:
+    build: ./gameserver/checker
+    container_name: checker
+    environment:
+      - ROUND_TIME=30
+      - FLAG_REGEX=[A-Z0-9]{31}=
+      - SCOREBOARD=http://scoreboard:8080
+    depends_on: [scoreboard]
+    networks: [adnet]
+    restart: unless-stopped
+  portal:
+    build: ./portal
+    container_name: portal
+    environment:
+      - SCOREBOARD=http://scoreboard:8080
+      - PUBLIC_HOST=localhost
+      - SECRET=dojo-portal-secret
+    ports:
+      - "9000:9000"
+    depends_on: [scoreboard]
+    networks: [adnet]
+    restart: unless-stopped
+  attacker_bot:
+    build: ./gameserver/attacker_bot
+    container_name: attacker_bot
+    environment:
+      - ROUND_TIME=30
+      - FLAG_REGEX=[A-Z0-9]{31}=
+      - SCOREBOARD=http://scoreboard:8080
+      - TEAM=attacker_bot
+    depends_on: [scoreboard]
+    networks: [adnet]
+    restart: unless-stopped
+networks:
+  adnet:
+    driver: bridge

@@ -1,0 +1,32 @@
+# Вулнбокс команды для ForcAD: 3 учебных сервиса на ОДНОМ хосте.
+# Порты 5001/5002/5003 совпадают с дефолтами, зашитыми в forcad/checkers/*/checker.py.
+# ForcAD-чекеры ходят на <team.ip>:5001 (notes), :5002 (pingtool), :5003 (vault).
+#
+# На ВДС: по одному такому боксу на команду, каждый на своём IP/хосте.
+# IP пропиши в forcad/config.yml -> teams[].ip. В фаерволе ВДС открой 5001-5003.
+#
+# Поднять:   docker compose -f forcad/vulnbox/docker-compose.yml up -d --build
+# Остановить: docker compose -f forcad/vulnbox/docker-compose.yml down
+services:
+  notes:
+    build: ../../services/notes
+    container_name: vb_notes
+    restart: unless-stopped
+    ports:
+      - "5001:5000"
+
+  pingtool:
+    build: ../../services/pingtool
+    container_name: vb_pingtool
+    restart: unless-stopped
+    environment:
+      - DATA_DIR=/data
+    ports:
+      - "5002:5000"
+
+  vault:
+    build: ../../services/vault
+    container_name: vb_vault
+    restart: unless-stopped
+    ports:
+      - "5003:5000"

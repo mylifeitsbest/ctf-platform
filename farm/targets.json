@@ -1,0 +1,109 @@
+{
+  "scoreboard": "http://127.0.0.1:8080",
+  "flag_regex": "[A-Z0-9]{31}=",
+  "round_time": 30,
+  "teams": [
+    {
+      "team": "team1",
+      "owner": "practice-you",
+      "services": {
+        "notes": {
+          "host": "127.0.0.1",
+          "port": 5100
+        },
+        "pingtool": {
+          "host": "127.0.0.1",
+          "port": 5101
+        },
+        "vault": {
+          "host": "127.0.0.1",
+          "port": 5102
+        },
+        "blog": {
+          "host": "127.0.0.1",
+          "port": 5103
+        },
+        "gallery": {
+          "host": "127.0.0.1",
+          "port": 5104
+        },
+        "profile": {
+          "host": "127.0.0.1",
+          "port": 5105
+        },
+        "authn": {
+          "host": "127.0.0.1",
+          "port": 5106
+        }
+      }
+    },
+    {
+      "team": "team2",
+      "owner": "bot",
+      "services": {
+        "notes": {
+          "host": "127.0.0.1",
+          "port": 5200
+        },
+        "pingtool": {
+          "host": "127.0.0.1",
+          "port": 5201
+        },
+        "vault": {
+          "host": "127.0.0.1",
+          "port": 5202
+        },
+        "blog": {
+          "host": "127.0.0.1",
+          "port": 5203
+        },
+        "gallery": {
+          "host": "127.0.0.1",
+          "port": 5204
+        },
+        "profile": {
+          "host": "127.0.0.1",
+          "port": 5205
+        },
+        "authn": {
+          "host": "127.0.0.1",
+          "port": 5206
+        }
+      }
+    },
+    {
+      "team": "team3",
+      "owner": "bot",
+      "services": {
+        "notes": {
+          "host": "127.0.0.1",
+          "port": 5300
+        },
+        "pingtool": {
+          "host": "127.0.0.1",
+          "port": 5301
+        },
+        "vault": {
+          "host": "127.0.0.1",
+          "port": 5302
+        },
+        "blog": {
+          "host": "127.0.0.1",
+          "port": 5303
+        },
+        "gallery": {
+          "host": "127.0.0.1",
+          "port": 5304
+        },
+        "profile": {
+          "host": "127.0.0.1",
+          "port": 5305
+        },
+        "authn": {
+          "host": "127.0.0.1",
+          "port": 5306
+        }
+      }
+    }
+  ]
+}

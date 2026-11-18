@@ -69,7 +69,10 @@ def svc_index(name):
 
 
 def target_url(name):
-    return f"http://{PUBLIC_HOST}:{TARGET['host_port_base'] + svc_index(name)}"
+    # хост берём из адреса, по которому открыт портал (IP ВДС или localhost) —
+    # НЕ из захардкоженного PUBLIC_HOST, иначе ссылки на сервисы ведут в никуда.
+    host = request.host.split(":")[0]
+    return f"http://{host}:{TARGET['host_port_base'] + svc_index(name)}"
 
 
 def my_internal(name):

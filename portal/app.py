@@ -212,7 +212,8 @@ def page(title, body, show_nav=True):
     nav = ""
     if show_nav and user():
         nav = (f'<div class="nav"><span class="b">A/D<b>_</b>Полигон</span>'
-               f'<a href="/">задания</a><a href="/leaderboard">лидерборд</a>'
+               f'<a href="/learn">уроки</a><a href="/">задания</a>'
+               f'<a href="/theory">теория</a><a href="/leaderboard">лидерборд</a>'
                f'<span class="sp"></span><span class="pts">{user()} · {user_points(user())} очк.</span>'
                f'<a href="/logout">выйти</a></div>')
     return Response(f"<!doctype html><html lang=ru><head><meta charset=utf-8>"
@@ -226,7 +227,7 @@ def index():
     if not user():
         body = """<div class="center"><div class="login">
           <h1>A/D Полигон</h1>
-          <p class="sub">Войди под своим именем, чтобы учиться на живых сервисах и сдавать настоящие флаги.</p>
+          <p class="sub">Войди под своим именем: уроки с нуля, живые задания, настоящие флаги.</p>
           <form method="post" action="/login" class="row" style="flex-direction:column">
             <input type="text" name="name" placeholder="твоё имя (напр. Рома)" autofocus required>
             <button class="btn p" style="width:100%">Войти →</button>
@@ -308,7 +309,8 @@ def challenge(name):
       <div class="step">Шаг 1 — атака {'✓ сделано' if a else ''}</div>
       <div class="card">
         <p>Открой живой сервис соперника и достань из него флаг (сам, руками или эксплойтом):</p>
-        <p class="row"><a class="btn" href="{target_url(name)}" target="_blank">Открыть сервис → {target_url(name)}</a></p>
+        <p class="row"><a class="btn" href="{target_url(name)}/health" target="_blank">Открыть сервис (/health) →</a> <span class="pts">{target_url(name)}</span></p>
+        <p class="pts" style="margin:4px 0 0">Это API, не сайт: на <code>/</code> будет <b>404 — это нормально</b>. Тыкай ручки прямо в адресной строке (см. подсказки выше), флаг ищи в ответах сервиса.</p>
         <form method="post" action="/submit" class="row" style="margin-top:12px">
           <input type="hidden" name="svc" value="{name}">
           <input type="text" name="flag" placeholder="вставь найденный флаг: XXXX...=" style="flex:1;min-width:220px">
@@ -381,6 +383,49 @@ def leaderboard():
     body = (f'<h1>Лидерборд команды</h1><p class="sub">Очки за атаку и патч по каждому заданию.</p>'
             f'<table><tr><th>#</th><th>игрок</th><th>очки</th></tr>{trs}</table>')
     return page("Лидерборд · A/D Полигон", body)
+
+
+# ---------- обучение прямо в портале: уроки (site) и теория (dashboard) ----------
+def _serve_learning(fname, title):
+    if not user():
+        return redirect("/")
+    path = os.path.join(os.path.dirname(__file__), fname)
+    try:
+        with open(path, encoding="utf-8") as f:
+            html = f.read()
+    except FileNotFoundError:
+        return page(title, "<p>Материал не найден — пересобери портал (gen_compose кладёт уроки в образ).</p>")
+    # ссылки на localhost/127.0.0.1 чиним на реальный хост (чтобы работало и на ВДС по IP).
+    # Трогаем только host:порт табло/портала/сервисов; голый 127.0.0.1 в примерах
+    # (пейлоад ping в уроке pingtool) оставляем как есть.
+    host = request.host                 # напр. 179.254.172.240:9000
+    hostonly = host.split(":")[0]
+    html = html.replace("localhost:", hostonly + ":")
+    html = html.replace("127.0.0.1:8080", hostonly + ":8080")
+    html = html.replace("127.0.0.1:9000", hostonly + ":9000")
+    # плашка возврата на платформу (вверху страницы)
+    bar = ('<div style="background:#0b0d10;border-bottom:1px solid #242934;'
+           'padding:9px 16px;font:14px system-ui,-apple-system,sans-serif">'
+           '<a href="/" style="color:#6ee7a8;text-decoration:none;font-weight:600">← A/D Полигон</a>'
+           '<a href="/learn" style="color:#9aa4b2;text-decoration:none;margin-left:18px">уроки</a>'
+           '<a href="/" style="color:#9aa4b2;text-decoration:none;margin-left:18px">задания</a>'
+           '<a href="/theory" style="color:#9aa4b2;text-decoration:none;margin-left:18px">теория</a>'
+           '</div>')
+    if "<body>" in html:
+        html = html.replace("<body>", "<body>" + bar, 1)
+    else:
+        html = bar + html          # learn.html — фрагмент без <body>, кладём плашку в начало
+    return Response(html, mimetype="text/html")
+
+
+@app.get("/learn")
+def learn():
+    return _serve_learning("learn.html", "Уроки")
+
+
+@app.get("/theory")
+def theory():
+    return _serve_learning("theory.html", "Теория")
 
 
 @app.get("/health")

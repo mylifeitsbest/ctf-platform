@@ -164,6 +164,18 @@ def main():
         for src in sploit_src:
             shutil.copy(src, sdst)
     print(f"[ok] сплойтов разнесено в portal/ и attacker_bot/: {len(sploit_src)}")
+
+    # учебные материалы в образ портала: уроки (site) и теория (dashboard) —
+    # портал раздаёт их на /learn и /theory, чтобы обучение было прямо на платформе.
+    learn_n = 0
+    for src_rel, dst_name in (("site/index.html", "learn.html"),
+                              ("dashboard/index.html", "theory.html")):
+        src = os.path.join(ROOT, src_rel)
+        if os.path.exists(src):
+            shutil.copy(src, os.path.join(ROOT, "portal", dst_name))
+            learn_n += 1
+    print(f"[ok] учебные материалы в портал (learn.html/theory.html): {learn_n}")
+
     n_svc = len(cfg["services"]) * len(cfg["teams"])
     print(f"[ok] docker-compose.yml: {n_svc} сервис-контейнеров, "
           f"{len(cfg['teams'])} команд, scoreboard + checker"

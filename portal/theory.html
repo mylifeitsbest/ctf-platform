@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A/D Dojo — обучение</title>
+<style>
+  :root{
+    --bg:#0b0e14; --panel:#121724; --panel2:#0f1420; --line:#1e2636;
+    --tx:#d7dce5; --mut:#8792a6; --dim:#5a6476;
+    --acc:#67d3ff; --grn:#5bd68a; --red:#e85d75; --yel:#f0b84b; --pur:#b48cff;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--tx);
+    font:16px/1.65 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+  code,kbd{font-family:ui-monospace,Consolas,Monaco,monospace;font-size:.9em}
+  .wrap{max-width:1000px;margin:0 auto;padding:0 20px 80px}
+  header.hero{padding:40px 20px 24px;border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,#0e1420,transparent)}
+  header.hero .wrap{padding-bottom:0}
+  h1{font-size:30px;margin:0 0 6px;letter-spacing:-.5px}
+  h1 .dot{color:var(--acc)}
+  .tag{color:var(--mut);font-size:15px}
+  nav{position:sticky;top:0;z-index:5;background:rgba(11,14,20,.92);
+    backdrop-filter:blur(6px);border-bottom:1px solid var(--line);margin-bottom:28px}
+  nav .wrap{padding:10px 20px;display:flex;gap:16px;flex-wrap:wrap}
+  nav a{color:var(--mut);text-decoration:none;font-size:13.5px;white-space:nowrap}
+  nav a:hover{color:var(--acc)}
+  section{margin:38px 0;scroll-margin-top:64px}
+  h2{font-size:22px;margin:0 0 4px;padding-bottom:8px;border-bottom:1px solid var(--line)}
+  h2 .n{color:var(--dim);font-weight:400;margin-right:8px}
+  h3{font-size:17px;margin:22px 0 6px;color:var(--acc)}
+  p{margin:10px 0}
+  .lead{color:var(--mut)}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin:14px 0}
+  .grid{display:grid;gap:14px}
+  @media(min-width:720px){.grid.c2{grid-template-columns:1fr 1fr}.grid.c3{grid-template-columns:1fr 1fr 1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .card h3{margin-top:0}
+  .badge{display:inline-block;font-size:12px;padding:2px 9px;border-radius:999px;
+    border:1px solid var(--line);color:var(--mut);margin-left:6px;vertical-align:middle}
+  .b-grn{color:var(--grn);border-color:#204b33}.b-red{color:var(--red);border-color:#4b2230}
+  .b-yel{color:var(--yel);border-color:#4b3c1c}.b-pur{color:var(--pur);border-color:#372a52}
+  ul,ol{margin:10px 0;padding-left:22px}li{margin:5px 0}
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:14.5px}
+  th,td{border:1px solid var(--line);padding:9px 11px;text-align:left;vertical-align:top}
+  th{background:var(--panel2);color:var(--mut);font-weight:600}
+  pre{background:#0a0d15;border:1px solid var(--line);border-radius:8px;padding:12px 14px;
+    overflow:auto;margin:10px 0}
+  pre code{color:#cfe8ff}
+  .kbdline code{background:#0a0d15;border:1px solid var(--line);border-radius:6px;padding:2px 7px}
+  details{background:var(--panel2);border:1px dashed #2a3650;border-radius:10px;padding:0 16px;margin:12px 0}
+  details[open]{padding-bottom:12px}
+  summary{cursor:pointer;padding:12px 0;color:var(--yel);font-weight:600;list-style:none}
+  summary::before{content:"▸ ";color:var(--dim)}
+  details[open] summary::before{content:"▾ "}
+  .warn{border-left:3px solid var(--red);background:#1a0f14;padding:12px 16px;border-radius:0 8px 8px 0;margin:14px 0}
+  .ok{border-left:3px solid var(--grn);background:#0e1a13;padding:12px 16px;border-radius:0 8px 8px 0;margin:14px 0}
+  .note{border-left:3px solid var(--acc);background:#0d1620;padding:12px 16px;border-radius:0 8px 8px 0;margin:14px 0}
+  .mut{color:var(--mut)}.dim{color:var(--dim)}.mono{font-family:ui-monospace,Consolas,monospace}
+  .pill{font-size:12px;color:var(--dim)}
+  a{color:var(--acc)}
+  footer{margin-top:50px;padding-top:20px;border-top:1px solid var(--line);color:var(--dim);font-size:13px}
+  .big{font-size:18px}
+  .role-num{color:var(--dim);font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <h1>A/D Dojo<span class="dot">.</span></h1>
+    <div class="tag">Платформа подготовки к Attack-Defense за 3 дня · 5 человек · всё на Python</div>
+  </div>
+</header>
+
+<nav><div class="wrap">
+  <a href="#start">Старт</a>
+  <a href="#gap">Разрыв навыков</a>
+  <a href="#how">Как устроен A/D</a>
+  <a href="#skills">4 навыка</a>
+  <a href="#plan">План 3 дня</a>
+  <a href="#roles">Роли</a>
+  <a href="#check">Чеклисты</a>
+  <a href="#svc">Сервисы и задания</a>
+  <a href="#match">Матч в среду</a>
+  <a href="#final">На финал</a>
+</div></nav>
+
+<div class="wrap">
+
+<section id="start">
+  <h2><span class="n">00</span>Старт</h2>
+  <p class="lead">Поднять стенд и открыть табло:</p>
+  <div class="kbdline">
+    <ol>
+      <li>Запустить <b>Docker Desktop</b>, дождаться полного старта.</li>
+      <li>В PowerShell из корня проекта: <code>powershell -ExecutionPolicy Bypass -File scripts\up.ps1</code></li>
+      <li>Табло → <a href="http://localhost:8080">http://localhost:8080</a> · логи раундов → <code>docker compose logs -f checker</code></li>
+      <li>Ферма → <code>cd farm; pip install -r requirements.txt; python farm.py</code></li>
+    </ol>
+  </div>
+  <div class="note">Полная инструкция и структура репозитория — в <code>README.md</code>. Эталонные эксплойты и разбор уязвимостей — в <code>exploits_reference/</code>.</div>
+</section>
+
+<section id="gap">
+  <h2><span class="n">01</span>Главное: где вы слабы (читать всем)</h2>
+  <p>Ваша сила — <b>OSINT, стегано, reverse, crypto</b>. В Attack-Defense из этого работает
+  только часть reverse (читать чужой сервис) и crypto (крипто-сервис). <b>OSINT и стегано в A/D не встречаются вообще.</b></p>
+  <p class="big">A/D держится на четырёх навыках, и это ровно те, что вы просили подтянуть:</p>
+  <div class="grid c2">
+    <div class="card"><h3>1. Быстрый веб-эксплойт</h3><span class="mut">Найти дыру в чужом сервисе и выжать флаг за минуты, а не за часы.</span></div>
+    <div class="card"><h3>2. Автоматизация</h3><span class="mut">Ферма эксплойтов + автосабмит. Без неё вы не наберёте очков, даже найдя дыру.</span></div>
+    <div class="card"><h3>3. Кража из трафика</h3><span class="mut">Поймать чужую атаку в дампе и переиграть её как свою. Половина очков топов — отсюда.</span></div>
+    <div class="card"><h3>4. Патчинг под SLA</h3><span class="mut">Закрыть дыру, не уронив сервис (иначе штраф больше, чем от кражи).</span></div>
+  </div>
+  <div class="ok">Хорошая новость: набор узкий и механический. За 3 дня правильных дрилов осваивается. Платформа заточена ровно под эти четыре навыка.</div>
+</section>
+
+<section id="how">
+  <h2><span class="n">02</span>Как устроен Attack-Defense</h2>
+  <p>У каждой команды — одинаковый набор сервисов (вулнбокс). Игра идёт <b>раундами</b> (тиками).</p>
+  <ul>
+    <li><b>Флаг</b> — строка (у нас <code>[A-Z0-9]{31}=</code>). Каждый раунд <b>чекер</b> кладёт свежие флаги во все сервисы всех команд.</li>
+    <li><b>Атака:</b> эксплуатируешь чужой сервис, достаёшь его флаг, сдаёшь в <b>сабмиттер</b> → очки атаки. Флаг живёт несколько раундов (TTL), потом «протухает».</li>
+    <li><b>Защита (SLA):</b> чекер каждый раунд проверяет, что твой сервис жив и работает правильно (регистрация, запись, чтение). Сломал при патче — ловишь <b>DOWN/MUMBLE</b> и теряешь очки SLA.</li>
+    <li><b>Нельзя</b> просто выключить/зафайрволить сервис, чтобы не украли: упадёт SLA. Патч должен <i>чинить дыру и сохранять работу</i>.</li>
+    <li><b>flag_id:</b> на реальных A/D игровой сервер подсказывает «идентификаторы» свежих флагов (какой юзер/какая запись) — атаки точечные, без слепого перебора.</li>
+    <li><b>Replay / кража:</b> соперник атакует тебя → его запрос виден в твоём трафике → ты повторяешь тот же запрос по всем остальным. Чужой труд — твои очки.</li>
+    <li><b>First blood:</b> первый флаг по сервису. Психологически и по очкам важно быть ранним.</li>
+  </ul>
+  <div class="note">На нашем стенде это всё есть: <code>checker</code> (ротация+SLA), <code>scoreboard</code> (<code>/submit</code>), <code>attacker_bot</code> (живой противник, который крадёт у всех незапатченных).</div>
+</section>
+
+<section id="skills">
+  <h2><span class="n">03</span>Четыре навыка — что конкретно тренируем</h2>
+  <table>
+    <tr><th>Навык</th><th>Что уметь к финалу</th><th>Чем тренируем тут</th></tr>
+    <tr><td><b>Веб-эксплойт</b></td><td>Прочитать чужой код/поведение, найти класс бага (IDOR, инъекция, десериализация, крипта), выжать флаг.</td><td>3 сервиса, 3 класса багов (ниже).</td></tr>
+    <tr><td><b>Автоматизация</b></td><td>Ферма гоняет сплойты по всем целям, дедуп флагов, пачечный сабмит, рестарт при падении.</td><td><code>farm/</code> + эталонные сплойты.</td></tr>
+    <tr><td><b>Трафик</b></td><td>tcpdump на сервисе, разобрать запрос атаки, переиграть (replay).</td><td>День 2: ловим атаку <code>attacker_bot</code>.</td></tr>
+    <tr><td><b>Патчинг</b></td><td>Минимальный патч, который чинит дыру и держит SLA зелёным; быстрый передеплой.</td><td>Патчите свой <code>team1</code>, бот проверяет.</td></tr>
+  </table>
+</section>
+
+<section id="plan">
+  <h2><span class="n">04</span>План на 3 дня</h2>
+
+  <h3>День 1 (Пн) — основы и первый полный цикл</h3>
+  <table>
+    <tr><th>Блок</th><th>Что делаем</th></tr>
+    <tr><td>Утро</td><td>Поднять стенд. Прочитать разделы 01–03. Научиться читать табло и логи чекера. Разобрать анатомию раунда.</td></tr>
+    <tr><td>День</td><td>Каждый сам проходит <b>find → exploit → patch</b> по всем трём сервисам: найти дыру → написать сплойт в <code>farm/sploits/</code> → украсть флаг у team2/team3 (видим ACCEPTED) → запатчить свой team1 так, чтобы бот перестал красть, а SLA остался зелёным.</td></tr>
+    <tr><td>Вечер</td><td>Ферма на автоцикле. Отработать патч-воркфлоу (быстрый передеплой контейнера). Итог: каждый прошёл цикл по 3 сервисам.</td></tr>
+  </table>
+
+  <h3>День 2 (Вт) — автоматизация, скорость, трафик</h3>
+  <table>
+    <tr><th>Блок</th><th>Что делаем</th></tr>
+    <tr><td>Утро</td><td>Ферма по-взрослому: один гоняет все сплойты по всем целям, меряем «флагов в минуту», настраиваем дедуп и пачечный сабмит.</td></tr>
+    <tr><td>День</td><td><b>Кража из трафика</b> (ключевой новый навык): <code>tcpdump</code> на сервисе → ловим атаку бота → восстанавливаем запрос → переигрываем как свой сплойт. Параллельно — патчинг под постоянным давлением бота.</td></tr>
+    <tr><td>Вечер</td><td>Мини-раунд 45–60 мин все против стенда. Разбор: что медленно, где теряли SLA, что автоматизировать.</td></tr>
+  </table>
+
+  <h3>День 3 (Ср) — внутренний матч 3 часа + роли</h3>
+  <table>
+    <tr><th>Блок</th><th>Что делаем</th></tr>
+    <tr><td>Матч</td><td>5 команд (team1..5), каждый патчит свою и атакует остальных. 3 часа. Фиксируем статистику табло и фермы.</td></tr>
+    <tr><td>Разбор</td><td>По цифрам распределяем роли (см. раздел «Роли»). Собираем общий «боевой» репозиторий заготовок на финал: шаблоны сплойтов, скрипт патч-деплоя, конфиг фермы, tcpdump-обвязка.</td></tr>
+  </table>
+  <div class="note">Как превратить стенд в матч на 5 — см. раздел «Матч в среду».</div>
+</section>
+
+<section id="roles">
+  <h2><span class="n">05</span>Роли в команде из 5</h2>
+  <p class="lead">В A/D выигрывает не «все ищут баги», а конвейер. Вот роли; среда покажет, кому какая ближе.</p>
+  <div class="grid c2">
+    <div class="card"><h3><span class="role-num">1.</span> Капитан / координатор <span class="badge b-pur">голова</span></h3>
+      Решает приоритеты: какой сервис атакуем, что патчим первым, когда бросаем ферму на новую цель. Следит за табло и временем. Держит команду в фокусе.</div>
+    <div class="card"><h3><span class="role-num">2.</span> Exploit-dev <span class="badge b-red">атака</span></h3>
+      Читает сервисы, находит баги, быстро пишет рабочие сплойты. Главный по «первой крови». Кому легко даются notes/vault/pingtool — сюда.</div>
+    <div class="card"><h3><span class="role-num">3.</span> Патчер / blue <span class="badge b-grn">защита</span></h3>
+      Закрывает дыры минимальным патчем, держит SLA зелёным, быстро передеплоит. Аккуратность важнее скорости поиска. Reverse-люди часто хороши тут.</div>
+    <div class="card"><h3><span class="role-num">4.</span> Трафик-аналитик <span class="badge b-yel">кража</span></h3>
+      tcpdump/Tulip, вылавливает чужие атаки, превращает их в свои сплойты (replay). Приносит очки чужим трудом.</div>
+    <div class="card"><h3><span class="role-num">5.</span> Инфра / автоматизация <span class="badge b-acc">мотор</span></h3>
+      Ферма, автосабмит, мониторинг SLA, firewall-заготовки, резервные копии сервисов. Делает так, чтобы руки остальных не тратились на рутину.</div>
+  </div>
+  <div class="note">Роли не намертво: на финале часто совмещают (капитан = и exploit-dev). Но у каждого должна быть <b>основная</b> зона ответственности.</div>
+</section>
+
+<section id="check">
+  <h2><span class="n">06</span>Чеклисты</h2>
+  <div class="grid c2">
+    <div class="card"><h3>Первые 15 минут матча</h3>
+      <ol><li>Снять копию всех своих сервисов (бэкап исходного кода).</li>
+      <li>Включить <code>tcpdump</code> на запись трафика по сервисам.</li>
+      <li>Поднять ферму, вбить IP всех команд, проверить сабмиттер (формат флага, адрес).</li>
+      <li>Быстрый осмотр каждого сервиса: где хранятся флаги, какие эндпоинты.</li>
+      <li>Капитан назначает, кто на какой сервис.</li></ol></div>
+    <div class="card"><h3>Цикл атаки</h3>
+      <ol><li>Нашёл баг → сплойт на <b>одной</b> цели.</li>
+      <li>Работает → в ферму, запуск по всем целям.</li>
+      <li>Проверил: флаги идут, сабмит ACCEPTED.</li>
+      <li>Сказал капитану (first blood?), не распыляйся — следующий сервис.</li></ol></div>
+    <div class="card"><h3>Патч-воркфлоу</h3>
+      <ol><li>Воспроизвёл атаку на себе (тем же сплойтом по своему IP).</li>
+      <li>Минимальный патч: чинит дыру, не трогает рабочую логику.</li>
+      <li>Передеплой: <code>docker compose up -d --build &lt;сервис&gt;</code>.</li>
+      <li>Проверил: сплойт больше не берёт флаг <b>и</b> SLA зелёный (свой чек/логи чекера).</li>
+      <li>Зафиксировал патч (git), сообщил команде.</li></ol></div>
+    <div class="card"><h3>Кража из трафика</h3>
+      <ol><li>В дампе ищешь необычные запросы к своим сервисам.</li>
+      <li>Нашёл запрос, который достаёт флаг → это чужой сплойт.</li>
+      <li>Повторяешь тот же запрос по всем остальным командам.</li>
+      <li>Оформляешь как сплойт в ферму → профит.</li>
+      <li>И сразу патчишь у себя эту же дыру.</li></ol></div>
+  </div>
+  <div class="warn"><b>Золотое правило защиты:</b> никогда не роняй сервис ради защиты. DOWN по SLA обычно дороже, чем несколько украденных флагов. Патч всегда проверяй на SLA.</div>
+</section>
+
+<section id="svc">
+  <h2><span class="n">07</span>Сервисы и задания</h2>
+  <p class="lead">Три сервиса, три класса багов. По каждому: найти → написать сплойт → запатчить свой. Подсказки спрятаны — сначала сами.</p>
+
+  <div class="card">
+    <h3>notes <span class="badge b-red">IDOR</span> <span class="badge">+ pickle</span></h3>
+    <p>Заметки по пользователям. Чекер кладёт флаг как приватную заметку. Исходник: <code>services/notes/app.py</code>.</p>
+    <p><b>Задание:</b> прочитать чужую заметку (с флагом), не зная токена владельца. Потом — закрыть дыру, чтобы чекер (читает свои заметки с токеном) по-прежнему проходил SLA.</p>
+    <details><summary>Подсказка 1 — куда смотреть</summary>Сравни, как проверяется владелец в <code>GET /notes</code> и в <code>GET /note/&lt;id&gt;</code>. id последовательные.</details>
+    <details><summary>Подсказка 2 — уязвимость</summary>IDOR: <code>/note/&lt;id&gt;</code> отдаёт любую заметку без проверки владельца. Перебирай id и фильтруй флаги.</details>
+    <details><summary>Патч</summary>В <code>get_note</code> сверяй <code>n["owner"]</code> с <code>whoami()</code>, иначе 403. Бонус-дыра: <code>/restore</code> делает <code>pickle.loads</code> входных данных (RCE) — тоже почини (json вместо pickle).</details>
+  </div>
+
+  <div class="card">
+    <h3>pingtool <span class="badge b-red">command injection</span></h3>
+    <p>Панель диагностики. Флаги чекер кладёт через <code>/save</code> (файлы на диске). Исходник: <code>services/pingtool/app.py</code>.</p>
+    <p><b>Задание:</b> выполнить произвольную команду через <code>/diag</code> и прочитать файлы с флагами всех пользователей. Потом запатчить, сохранив рабочий ping.</p>
+    <details><summary>Подсказка 1 — куда смотреть</summary>Как именно формируется и запускается команда ping в <code>/diag</code>? Что попадает в строку из тела запроса?</details>
+    <details><summary>Подсказка 2 — уязвимость</summary><code>shell=True</code> + конкатенация <code>host</code>. Полезная нагрузка вида <code>127.0.0.1; cat /data/*/*</code>.</details>
+    <details><summary>Патч</summary>Убери shell: <code>subprocess.run(["ping","-c","1","-W","1",host])</code> и/или валидируй host регекспом. SLA (ping 127.0.0.1) не пострадает.</details>
+  </div>
+
+  <div class="card">
+    <h3>vault <span class="badge b-red">weak crypto</span> <span class="badge b-yel">ваша сильная тема</span></h3>
+    <p>Хранилище секретов (AES). Флаги — через <code>/seal</code>. Исходник: <code>services/vault/app.py</code>.</p>
+    <p><b>Задание:</b> получить чужие секреты, не имея токена владельца. Потом закрыть, сохранив seal→reveal.</p>
+    <details><summary>Подсказка 1 — куда смотреть</summary>Все ли эндпоинты требуют авторизацию? Какой режим AES и откуда берётся ключ?</details>
+    <details><summary>Подсказка 2 — уязвимость</summary><code>/blob/&lt;id&gt;</code> отдаёт шифротекст без авторизации, а ключ — фиксированный и лежит в исходниках (одинаковых у всех). AES-ECB, фикс-ключ → расшифровал сам.</details>
+    <details><summary>Патч</summary>Закрой <code>/blob</code> авторизацией/владельцем или убери его; дополнительно — случайный ключ при старте (<code>os.urandom(16)</code>). seal→reveal в пределах процесса не сломается.</details>
+  </div>
+
+  <div class="note">Проверка эксплойта: положил файл <code>&lt;сервис&gt;_sploit.py</code> в <code>farm/sploits/</code> с <code>SERVICE=...</code> и <code>exploit(host,port)</code> → <code>python farm.py --once</code>. Ответы и разбор — <code>exploits_reference/</code>.</div>
+</section>
+
+<section id="match">
+  <h2><span class="n">08</span>Матч в среду (3 часа, каждый сам за себя)</h2>
+  <h3>Как настроить</h3>
+  <ol>
+    <li>В <code>config/game.json</code> сделать 5 команд: team1..team5, <code>host_port_base</code>: 5100, 5200, 5300, 5400, 5500.</li>
+    <li>Выключить <code>attacker_bot</code> (<code>"attacker_bot": false</code>) — соперники теперь живые. Или оставить как общий «фон».</li>
+    <li><code>scripts\up.ps1</code> — пересоберёт стенд на 5 команд × 3 сервиса.</li>
+    <li>Каждому игроку — своя команда (её он патчит). Все подключаются к этой машине по LAN: табло и сервисы слушают <code>0.0.0.0</code>, адрес — <code>&lt;IP хоста&gt;:порт</code>.</li>
+    <li>Каждый запускает ферму: <code>python farm.py --team teamN</code> (ферма не бьёт по своей команде).</li>
+  </ol>
+  <div class="note">В одной сети: в <code>farm/targets.json</code> замени <code>127.0.0.1</code> на IP хоста (или сгенерь на машине хоста и раздай). Один человек = одна команда = один патчит, остальных атакует.</div>
+  <h3>Как читать табло и делить роли</h3>
+  <ul>
+    <li><b>Атака</b> высокая, первым находит баги → <b>exploit-dev</b>.</li>
+    <li><b>Потеряно</b> низкое, <b>SLA</b> высокий всю игру → <b>патчер/blue</b>.</li>
+    <li>Быстро поднял ферму/автосабмит, помогал остальным технически → <b>инфра/автоматизация</b>.</li>
+    <li>Украл флаги тем же приёмом по всем (видно по всплеску после чужой атаки) → <b>трафик-аналитик</b>.</li>
+    <li>Меньше сам кодил, но направлял и не терял темп → <b>капитан</b>.</li>
+  </ul>
+</section>
+
+<section id="final">
+  <h2><span class="n">09</span>Что взять на реальный финал</h2>
+  <p>На настоящем A/D обычно используют проверенный опенсорс — не пишите в бою с нуля:</p>
+  <table>
+    <tr><th>Инструмент</th><th>Зачем</th></tr>
+    <tr><td><b>Tulip</b> (OpenAttackDefenseTools)</td><td>Анализ трафика, поиск и кража чужих эксплойтов из дампов. Ставить в первые минуты.</td></tr>
+    <tr><td><b>DestructiveFarm</b></td><td>Готовая ферма эксплойтов + сабмиттер. Наша <code>farm/</code> — её упрощённый аналог для тренировки.</td></tr>
+    <tr><td><b>tcpdump</b> / <b>Wireshark</b></td><td>Писать и разбирать трафик своих сервисов.</td></tr>
+    <tr><td><b>pwntools</b>, <b>requests</b>, <b>httpx</b></td><td>Быстро писать сплойты на Python.</td></tr>
+    <tr><td><b>git</b></td><td>Версионировать патчи, быстро откатываться, делиться правками в команде.</td></tr>
+    <tr><td><b>iptables</b> / мониторинг SLA</td><td>Аккуратная фильтрация (не роняя SLA) и слежка за своими сервисами.</td></tr>
+    <tr><td>ForcAD / ctf-gameserver</td><td>Для понимания, как устроен игровой сервер (почитать, не ставить в бою).</td></tr>
+  </table>
+  <div class="ok"><b>Домашняя заготовка = половина успеха.</b> К финалу имейте готовыми: шаблон сплойта, скрипт «ферма по всем IP», скрипт быстрого патч-деплоя, tcpdump-обвязку, чеклист первых 15 минут. Соберите этот репозиторий в среду вечером.</div>
+</section>
+
+<footer>
+  A/D Dojo · офлайн-дашборд · открывается двойным кликом · редактируй под себя (<code>dashboard/index.html</code>).<br>
+  Стенд: <code>services/</code> · <code>gameserver/</code> · <code>farm/</code> · <code>exploits_reference/</code> · <code>config/game.json</code>.
+</footer>
+
+</div>
+</body>
+</html>
